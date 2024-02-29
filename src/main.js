@@ -12,6 +12,7 @@ const DEFAULT_OPTIONS = {
   nodeRadiusHover: 10,
   nodeRadiusFocus: 10,
   style: {
+    borderRadius: "2rem",
     backgroundColor: "black",
     edgeColor: "white",
     nodeBorder: "white",
@@ -52,9 +53,7 @@ export default class GraphDrawer {
   #setUpListener() {
     if (this.onNodeClick) {
       this.canvas.addEventListener("mouseup", (event) => {
-        let clickedOnNode = this.#posHasNode(
-          new Vec(event.pageX - event.target.offsetLeft, event.pageY - event.target.offsetTop)
-        )
+        let clickedOnNode = this.#posHasNode(new Vec(event.offsetX, event.offsetY))
         if (clickedOnNode !== null) {
           this.onNodeClick(clickedOnNode.name, { x: clickedOnNode.posX, y: clickedOnNode.posY }, event)
         }
@@ -63,9 +62,7 @@ export default class GraphDrawer {
     if (this.onNodeHover) {
       let onNode = false
       this.canvas.addEventListener("mousemove", (event) => {
-        let nodeHoverOver = this.#posHasNode(
-          new Vec(event.pageX - event.target.offsetLeft, event.pageY - event.target.offsetTop)
-        )
+        let nodeHoverOver = this.#posHasNode(new Vec(event.offsetX, event.offsetY))
         if (nodeHoverOver !== null && !onNode) {
           this.drawCanvas.drawNode(nodeHoverOver, this.options.nodeRadiusHover)
           onNode = true
@@ -124,6 +121,7 @@ export default class GraphDrawer {
     this.canvas = document.createElement("canvas")
     this.canvas.width = this.options.width
     this.canvas.height = this.options.height
+    this.canvas.style.borderRadius = this.options.style.borderRadius
     while (container.firstElementChild) {
       container.firstElementChild.remove()
     }
