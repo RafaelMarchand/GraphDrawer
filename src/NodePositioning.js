@@ -19,13 +19,21 @@ export default class NodePositioning {
     this.maxNodeCount = maxNodeCount
   }
 
-  position() {
+  position_2() {
     let startingDepth = this.maxEdgesDepht
     if (this.graphDepth - (this.maxEdgesDepht + 1) > this.maxEdgesDepht) {
       startingDepth = this.maxEdgesDepht + 1
     }
     this.#nodePosX()
     this.nodePosY(startingDepth)
+    return this.nodes
+  }
+
+  position() {
+    this.#nodePosX()
+    for (let i = -1; i < this.graphDepth; i++) {
+      this.#verticalNodePos(i + 1, i)
+    }
     return this.nodes
   }
 
