@@ -3,28 +3,31 @@ import graphConverter from "./GraphConverter.js"
 import NodePositioning from "./NodePositioning.js"
 import Vec from "./Vec.js"
 
-const NODE_HOVER_RADIUS_FACTOR = 2
-
 const DEFAULT_OPTIONS = {
   width: 1000,
   height: 600,
   nodeRadius: 5,
-  nodeRadiusHover: 10,
   nodeRadiusFocus: 10,
+  nodeHoverRadiusFactor: 1,
   style: {
-    borderRadius: "2rem",
+    borderRadius: "2rem"
+  },
+  graphStyle: {
     backgroundColor: "black",
     edgeColor: "white",
     nodeBorder: "white",
     edgeWidth: 5, // first hsl value to determine color
     nodeColorPositive: 0,
     nodeColorNegative: 240,
+    nodeColorFocus: "blue",
+    nodeBorderFocusWidth: 0,
+    nodeBorderFocusColor: "white",
     maxLightness: 4
   }
 }
 
 export default class GraphDrawer {
-  constructor(graphMethods, container = null, options, onNodeClick = null, onNodeHover = null) {
+  constructor(graphMethods, container, options, onNodeClick = null, onNodeHover = null) {
     if ((options != null && Object.keys(options).length === 0) || !options) {
       this.options = DEFAULT_OPTIONS
     } else {
@@ -37,15 +40,6 @@ export default class GraphDrawer {
     this.drawCanvas = null
     this.canvasNodes = []
     this.nodePositioning = null
-    if (container) {
-      this.#createCanvas(container)
-      this.#setUpListener()
-    }
-  }
-
-  addToDOM(container, onNodeClick = null, onNodeHover = null) {
-    this.onNodeClick = onNodeClick
-    this.onNodeHover = onNodeHover
     this.#createCanvas(container)
     this.#setUpListener()
   }
@@ -64,7 +58,7 @@ export default class GraphDrawer {
       this.canvas.addEventListener("mousemove", (event) => {
         let nodeHoverOver = this.#posHasNode(new Vec(event.offsetX, event.offsetY))
         if (nodeHoverOver !== null && !onNode) {
-          this.drawCanvas.drawNode(nodeHoverOver, this.options.nodeRadiusHover)
+          this.drawCanvas.drawFocusNode(nodeHoverOver)
           onNode = true
           this.onNodeHover(nodeHoverOver.name, { x: nodeHoverOver.posX, y: nodeHoverOver.posY }, event)
         }
@@ -86,16 +80,40 @@ export default class GraphDrawer {
     }
   }
 
-  drawGraph(graph, rootNodes) {
-    let [canvasNodes, canvasRootNodes] = graphConverter(graph, this.graphMethods, rootNodes)
+  compareGraph(graph1, graph2) {
+    if (graph1.length !== graph2.length) return false
 
+    for (let i = 0; i < graph1.length; i++) {
+      if (!this.compareNode(graph1[i], graph2[i])) {
+        return false
+      }
+    }
+    return true
+  }
+
+  compareNode(nodeA, nodeB) {
+    if (nodeA.name !== nodeB.name) return false
+    if (nodeA.edges.length !== nodeB.edges.length) return false
+
+    for (let i = 0; i < nodeA.edges.length; i++) {
+      if (nodeA.edges[i].destNode.name !== nodeB.edges[i].destNode.name) {
+        return false
+      }
+    }
+    return true
+  }
+
+  drawGraph(graph, rootNodes) {
+    const [canvasNodes, canvasRootNodes] = graphConverter(graph, this.graphMethods, rootNodes)
+
+    const structuralEqual = this.compareGraph(this.canvasNodes, canvasNodes)
     if (canvasNodes.length === this.canvasNodes.length) {
       this.#updateNodeValues(canvasNodes)
     } else {
       this.canvasNodes = canvasNodes
     }
 
-    if (canvasNodes.lenght !== 0 && rootNodes.length !== 0) {
+    if (canvasNodes.length !== 0 && rootNodes.length !== 0 && !structuralEqual) {
       this.nodePositioning = new NodePositioning(this.canvasNodes, canvasRootNodes, this.options)
       this.nodePositioning.position()
     }
@@ -106,10 +124,10 @@ export default class GraphDrawer {
     let nodeMatch = null
     this.canvasNodes.forEach((node) => {
       if (
-        pos.x > node.posX - this.options.nodeRadiusHover * NODE_HOVER_RADIUS_FACTOR &&
-        pos.x < node.posX + this.options.nodeRadiusHover * NODE_HOVER_RADIUS_FACTOR &&
-        pos.y > node.posY - this.options.nodeRadiusHover * NODE_HOVER_RADIUS_FACTOR &&
-        pos.y < node.posY + this.options.nodeRadiusHover * NODE_HOVER_RADIUS_FACTOR
+        pos.x > node.posX - this.options.nodeRadiusHover * this.options.nodeHoverRadiusFactor &&
+        pos.x < node.posX + this.options.nodeRadiusHover * this.options.nodeHoverRadiusFactor &&
+        pos.y > node.posY - this.options.nodeRadiusHover * this.options.nodeHoverRadiusFactor &&
+        pos.y < node.posY + this.options.nodeRadiusHover * this.options.nodeHoverRadiusFactor
       ) {
         nodeMatch = node
       }
@@ -121,15 +139,13 @@ export default class GraphDrawer {
     this.canvas = document.createElement("canvas")
     this.canvas.width = this.options.width
     this.canvas.height = this.options.height
-    this.canvas.style.borderRadius = this.options.style.borderRadius
+    this.canvas.style.borderRadius = "0.3rem"
     while (container.firstElementChild) {
       container.firstElementChild.remove()
     }
     container.append(this.canvas)
 
-    let ctx = this.canvas.getContext("2d")
-    ctx.fillRect
-    this.drawCanvas = new DrawCanvas(ctx, this.options)
+    this.drawCanvas = new DrawCanvas(this.canvas.getContext("2d"), this.options)
     this.drawCanvas.drawBackground()
   }
 }

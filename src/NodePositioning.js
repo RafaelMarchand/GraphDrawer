@@ -1,4 +1,4 @@
-import Intersection from "./Intersection.js"
+import count from "./Intersection.js"
 
 const STARTING_DEPTH = 0
 const X_PADDING_FACTOR = 4 // 0...infinity 0 => max Padding, infinity => min Padding
@@ -14,18 +14,24 @@ export default class NodePositioning {
     this.maxNodeCount = 0
     this.maxEdgesDepht = 0
     this.#getNodesDept(rootNodes)
-    let [maxNodeCount, maxEdgesDepht] = this.#maxElementsDepth()
+    const [maxNodeCount, maxEdgesDepht] = this.#maxElementsDepth()
     this.maxEdgesDepht = maxEdgesDepht
     this.maxNodeCount = maxNodeCount
   }
 
-  position() {
+  position_2() {
     let startingDepth = this.maxEdgesDepht
     if (this.graphDepth - (this.maxEdgesDepht + 1) > this.maxEdgesDepht) {
       startingDepth = this.maxEdgesDepht + 1
     }
     this.#nodePosX()
     this.nodePosY(startingDepth)
+    return this.nodes
+  }
+
+  position() {
+    this.#nodePosX()
+    this.nodePosY_1()
     return this.nodes
   }
 
@@ -48,19 +54,24 @@ export default class NodePositioning {
     })
   }
 
+  nodePosY_1() {
+    for (let i = -1; i < this.graphDepth; i++) {
+      this.#verticalNodePos(i + 1, i)
+    }
+  }
+
   nodePosY(startingDepth) {
     const startNodes = this.nodesDept[startingDepth]
-    const intersection = new Intersection()
-
     const permutations = this.#permutator(startNodes)
     let intersectionCounts = []
     let minIntersectionCount = null
     let minIntersectionCountIndex
+
     permutations.forEach((perm) => {
       let intersectionCountPermu = 0
       this.#setAllNodePosY(perm, startingDepth)
       this.nodesDept.forEach((nodes) => {
-        intersectionCountPermu += intersection.count(nodes)
+        intersectionCountPermu += count(nodes)
       })
       intersectionCounts.push(intersectionCountPermu)
     })

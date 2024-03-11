@@ -10,7 +10,7 @@ export default class DrawCanvas {
   }
 
   drawBackground() {
-    this.ctx.fillStyle = this.style.backgroundColor
+    this.ctx.fillStyle = this.options.graphStyle.backgroundColor
     this.ctx.fillRect(0, 0, this.options.width, this.options.height)
   }
 
@@ -19,29 +19,37 @@ export default class DrawCanvas {
     canvasNodes.forEach((node) => {
       this.#drawEdge(node)
       if (node.focus && node.focus === true) {
-        this.drawNode(node, this.options.nodeRadiusFocus)
+        this.drawFocusNode(node)
       } else {
-        this.drawNode(node, this.options.nodeRadius)
+        this.drawNode(node)
       }
     })
   }
 
-  drawNode(node, nodeRadius) {
+  drawNode(node) {
     this.ctx.strokeStyle =
-      this.style.nodeBorder === undefined ? this.#getEvalColor(node.value) : this.style.nodeBorder
+      this.options.graphStyle.nodeBorder === undefined
+        ? this.#getEvalColor(node.value)
+        : this.options.graphStyle.nodeBorder
     this.ctx.beginPath()
 
-    this.ctx.arc(node.posX, node.posY, nodeRadius, 0, 2 * Math.PI)
+    this.ctx.arc(node.posX, node.posY, this.options.nodeRadius, 0, 2 * Math.PI)
 
     this.ctx.stroke()
     this.ctx.fillStyle = this.#getEvalColor(node.value)
     this.ctx.fill()
+  }
 
-    //this.ctx.fillStyle = 'white'
-    //this.ctx.font = '15px serif'
-    //this.ctx.fillText(node.name, node.posX + 10, node.posY - 15);
-    //this.ctx.font = '10px serif'
-    //this.ctx.fillText(node.depth, node.posX -10, node.posY - 15);
+  drawFocusNode(node) {
+    this.ctx.strokeStyle = this.options.graphStyle.nodeBorderFocusColor
+    this.ctx.lineWidth = this.options.graphStyle.nodeBorderFocusWidth
+    this.ctx.beginPath()
+
+    this.ctx.arc(node.posX, node.posY, this.options.nodeRadiusFocus, 0, 2 * Math.PI)
+
+    this.ctx.stroke()
+    this.ctx.fillStyle = this.options.graphStyle.nodeColorFocus
+    this.ctx.fill()
   }
 
   #drawEdge(node) {
@@ -50,11 +58,11 @@ export default class DrawCanvas {
       let p1 = new Vec(Math.floor(xGap * CONTROLPOINT + node.posX), node.posY)
       let p2 = new Vec(Math.floor(edge.destNode.posX - xGap * CONTROLPOINT), edge.destNode.posY)
 
-      this.ctx.lineWidth = this.style.edgeWidth
+      this.ctx.lineWidth = this.options.graphStyle.edgeWidth
       if (node.value !== null && edge.destNode.value !== null) {
         this.ctx.strokeStyle = this.#createGradient(node, edge.destNode)
       } else {
-        this.ctx.strokeStyle = this.style.edgeColor
+        this.ctx.strokeStyle = this.options.graphStyle.edgeColor
       }
       this.ctx.beginPath()
       this.ctx.moveTo(node.posX, node.posY)
@@ -71,15 +79,15 @@ export default class DrawCanvas {
   }
 
   #getEvalColor(value) {
-    let l = Math.floor((-Math.abs(value) * 100) / this.style.maxLightness) + 100
+    let l = Math.floor((-Math.abs(value) * 100) / this.options.graphStyle.maxLightness) + 100
     let color
     if (l < 50) {
       l = 50
     }
     if (value >= 0) {
-      color = `hsl(${this.style.nodeColorPositive}, 100%, ${l}%)`
+      color = `hsl(${this.options.graphStyle.nodeColorPositive}, 100%, ${l}%)`
     } else {
-      color = `hsl(${this.style.nodeColorNegative}, 100%, ${l}%)`
+      color = `hsl(${this.options.graphStyle.nodeColorNegative}, 100%, ${l}%)`
     }
     return color
   }
