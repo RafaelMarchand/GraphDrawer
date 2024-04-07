@@ -1,5 +1,5 @@
-import { defineConfig } from "vite";
-import path from "path";
+import { defineConfig } from "vite"
+import path from "path"
 
 export default defineConfig({
   plugins: [],
@@ -7,21 +7,21 @@ export default defineConfig({
     alias: [
       {
         find: "~",
-        replacement: path.resolve(__dirname, "./src"),
-      },
-    ],
+        replacement: path.resolve(__dirname, "./src")
+      }
+    ]
   },
   server: {
-    port: 3000,
+    port: 3000
   },
   build: {
     lib: {
       entry: path.resolve(__dirname, "src/main.js"),
       fileName: "main",
-      formats: ["es", "cjs"],
+      formats: ["es", "cjs"]
     },
     rollupOptions: {
-      external: [],
-    },
-  },
-});
+      external: []
+    }
+  }
+})
