@@ -22,12 +22,12 @@ export function draw<G, A>(graph: Graph<G, A>, canvas: HTMLCanvasElement, config
     context.fillRect(0, 0, canvas.width, canvas.height)
   }
   function drawNode(node: Node<A>) {
-    context.strokeStyle = getValue(config.nodeBorderColor, node)
-    context.lineWidth = getValue(config.nodeBorderWidth, node)
+    context.strokeStyle = getValue(config.nodeBorderColor, node.attributes)
+    context.lineWidth = getValue(config.nodeBorderWidth, node.attributes)
     context.beginPath()
-    context.arc(node.posX, node.posY, getValue(config.nodeRadius, node), 0, 2 * Math.PI)
+    context.arc(node.posX, node.posY, getValue(config.nodeRadius, node.attributes), 0, 2 * Math.PI)
     context.stroke()
-    context.fillStyle = getValue(config.nodeColor, node)
+    context.fillStyle = getValue(config.nodeColor, node.attributes)
     context.fill()
 
     context.fillStyle = "white"
@@ -43,8 +43,8 @@ export function draw<G, A>(graph: Graph<G, A>, canvas: HTMLCanvasElement, config
       let p1 = new Position(Math.floor(xGap * CONTROLPOINT + node.posX), node.posY)
       let p2 = new Position(Math.floor(destNode.posX - xGap * CONTROLPOINT), destNode.posY)
 
-      context.lineWidth = getValue(config.edgeWidth, node, destNode)
-      context.strokeStyle = getValue(config.edgeColor, node, destNode)
+      context.lineWidth = getValue(config.edgeWidth, node.attributes, destNode.attributes)
+      context.strokeStyle = getValue(config.edgeColor, node.attributes, destNode.attributes)
 
       context.beginPath()
       context.moveTo(node.posX, node.posY)

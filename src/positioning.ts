@@ -1,8 +1,8 @@
-import { or, usolve } from "mathjs"
+import { usolve } from "mathjs"
 import Graph from "./Graph/Graph"
 import Node from "./Graph/Node"
-import { Config } from "./main"
 import { draw } from "./draw"
+import { Config } from "./main"
 
 const Y_SCALING = 1.6
 
@@ -20,7 +20,7 @@ type Arrangement<A> = {
 }
 
 // prettier-ignore
-export function setPositions_debugger<G, A>(graph: Graph<G, A>, config: Config<A>, canvas: HTMLCanvasElement) {
+export function setPositions<G, A>(graph: Graph<G, A>, config: Config<A>, canvas: HTMLCanvasElement) {
   setPositionX()
   setPositionY()
 
@@ -35,18 +35,23 @@ export function setPositions_debugger<G, A>(graph: Graph<G, A>, config: Config<A
   }
 
   function setPositionY() {
-    let arrangements: Arrangement<A>[] | null = null
+    let arrangements: Arrangement<A>[] = []
     for (let i = 0; i <= graph.depth; i++) {
       arrangements = getArrangements(i, arrangements)
-      console.log(arrangements)
+      //console.log(arrangements)
     }
-    arrangements?.forEach(arrangment => {
-      setArrangementPositions(arrangment)
-      draw(graph, canvas, config)
-      console.log(arrangment)
-      debugger
+    //arrangements?.forEach(arrangment => {
+      // setArrangementPositions(arrangment)
+      // draw(graph, canvas, config)
+      // console.log(arrangment)
+      // debugger
+    //})
+    const sorted = arrangements.sort((a, b) => {
+      return a.intersections - b.intersections
     })
-    
+
+    setArrangementPositions(sorted[0])
+    draw(graph, canvas, config)
   }
 
   function setArrangementPositions(arrangement: Arrangement<A>) {
@@ -57,11 +62,11 @@ export function setPositions_debugger<G, A>(graph: Graph<G, A>, config: Config<A
   
 
   // prettier-ignore
-  function getArrangements(depth: number, prevArrangements: Arrangement<A>[] | null = null){
+  function getArrangements(depth: number, prevArrangements: Arrangement<A>[]){
     const nodes = graph.getNodesAtDepth(depth)
     const positions = getPositionsY(nodes.length)
 
-    if (depth === 0 || !prevArrangements ) {
+    if (depth === 0) {
       return permutator(nodes).map((permu): Arrangement<A> => {
         return {
           spots: permu.map((node, index): Spot<A> => {
@@ -99,10 +104,8 @@ export function setPositions_debugger<G, A>(graph: Graph<G, A>, config: Config<A
             intersections: arrangement.intersections + intersectionCountOutEdges(prevNodes)
           }
         )
-
-        arrangement.spots = [...arrangement.spots,  ]
       })
-      }
+    }
     return arrangements
   }
 

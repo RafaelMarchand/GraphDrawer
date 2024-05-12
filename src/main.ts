@@ -1,9 +1,9 @@
+import Graph from "./Graph/Graph.js"
+import Node from "./Graph/Node.js"
 import Position from "./Position.js"
 import { draw } from "./draw.js"
-import Graph from "./Graph/Graph.js"
+import { setPositions } from "./positioning.js"
 import { GraphMethods, convert, getConfig, getValue } from "./utils.js"
-import Node from "./Graph/Node.js"
-import {setPositions_debugger } from "./positioning.js"
 
 export type ConfigInput<A> = {
   width?: number
@@ -106,8 +106,7 @@ export default class GraphDrawer<G, A> {
     this.graph = newGraph
 
     if (!equalStructure) {
-      setPositions_debugger(this.graph, this.config, this.canvas)
-      //setPositions(this.graph, this.config)
+      setPositions(this.graph, this.config, this.canvas)
     }
 
     if (!equalStructure || !equalValues) {

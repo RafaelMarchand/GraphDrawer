@@ -1,11 +1,11 @@
-import GraphDrawer from "../src/main"
 import Graphology from "graphology"
+import GraphDrawer from "../src/main"
 
 const graph = new Graphology.Graph()
 
 graph.addNode("1", { value: 0.0 })
 
-graph.addNode("2", { value: 5 })
+graph.addNode("2", { value: 5, h: "gg" })
 graph.addNode("3", { value: 0 })
 graph.addNode("4", { value: -2.5 })
 graph.addNode("5", { value: -5 })
@@ -28,16 +28,24 @@ graph.addEdge("3", "8")
 graph.addEdge("7", "9")
 
 const container = document.getElementById("app")
-const options = {}
+const config = {
+  nodeColor: (a) => {
+    console.log(a)
+    if (a.value === 5) {
+      return "red"
+    }
+    return "blue"
+  }
+}
 const graphMethods = {
   getNodeKeys: (graph) => graph.mapNodes((key) => key),
   getDestNodeKeys: (graph, nodeKey) =>
     graph.mapOutEdges(nodeKey, (_edge, _attributes, _source, target) => target),
   getSrcNodeKeys: (graph, nodeKey) =>
     graph.mapInEdges(nodeKey, (_edge, _attributes, _source, target) => target),
-  getNodeAttribute: (graph, nodeKey) => graph.getNodeAttribute(nodeKey, "value")
+  getNodeAttribute: (graph, nodeKey) => graph.getNodeAttributes(nodeKey)
 }
 
-const graphDrawer = new GraphDrawer(graphMethods, container, options)
+const graphDrawer = new GraphDrawer(graphMethods, container, config)
 
 graphDrawer.update(graph, ["1"])
