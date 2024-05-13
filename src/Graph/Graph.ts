@@ -5,19 +5,16 @@ const STARTING_DEPTH = 0
 export default class Graph<G, A = any> {
   nodes: Node<A>[]
   rootNodeKeys: string[]
-  focus: string | null
   depth: number
 
   constructor(nodes: Node<A>[], rootNodeKeys: string[]) {
     this.nodes = nodes
     this.rootNodeKeys = rootNodeKeys
-    this.focus = null
     this.depth = STARTING_DEPTH
     this.setDepthNodes()
   }
 
   equalValues(graph: Graph<G, A>) {
-    if (this.focus !== graph.focus) return false
     if (this.nodes.length !== graph.nodes.length) return false
 
     for (let i = 0; i < this.nodes.length; i++) {
