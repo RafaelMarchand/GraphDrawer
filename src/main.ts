@@ -106,7 +106,7 @@ export default class GraphDrawer<G, A> {
     this.graph = newGraph
 
     if (!equalStructure) {
-      setPositions(this.graph, this.config, this.canvas)
+      setPositions(this.graph, this.config)
     }
 
     if (!equalStructure || !equalValues) {

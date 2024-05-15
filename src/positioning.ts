@@ -1,7 +1,6 @@
 import { usolve } from "mathjs"
 import Graph from "./Graph/Graph"
 import Node from "./Graph/Node"
-import { draw } from "./draw"
 import { Config } from "./main"
 
 const Y_SCALING = 1.6
@@ -20,7 +19,8 @@ type Arrangement<A> = {
 }
 
 // prettier-ignore
-export function setPositions<G, A>(graph: Graph<G, A>, config: Config<A>, canvas: HTMLCanvasElement) {
+export function setPositions<G, A>(graph: Graph<G, A>, config: Config<A>) {
+  console.log(graph)
   setPositionX()
   setPositionY()
 
@@ -49,9 +49,8 @@ export function setPositions<G, A>(graph: Graph<G, A>, config: Config<A>, canvas
     const sorted = arrangements.sort((a, b) => {
       return a.intersections - b.intersections
     })
-
+    console.log(sorted)
     setArrangementPositions(sorted[0])
-    draw(graph, canvas, config)
   }
 
   function setArrangementPositions(arrangement: Arrangement<A>) {
@@ -83,10 +82,19 @@ export function setPositions<G, A>(graph: Graph<G, A>, config: Config<A>, canvas
 
     let arrangements: Arrangement<A>[] = []
 
-    for (const arrangement of prevArrangements){
-      const prevNodes = arrangement.spots.filter(spot => spot.node.depth === (depth - 1)).map(spot => spot.node)
+    for (const arrangement of prevArrangements) {
+      const prevSpots = arrangement.spots.filter(spot => spot.node.depth === (depth - 1)) 
+      const prevNodes = prevSpots.map(spot => spot.node)
       spreadAllongY(prevNodes, config.heigth)
-      const orders = nodeOrders(depth, graph, config.heigth)
+      // prevNodes.forEach((node, index) => {
+      //   node.setPosY(prevSpots[index].posY)
+      // } )
+      console.log("prevNodes",prevNodes.map(n => n.key))
+      // console.log("prevNodes",prevNodes.sort((a,b) => b.posY-a.posY))
+      // console.log("prevSpots", prevSpots.map(n => n.node.key)) 
+     // console.log("prevSpots", prevSpots.sort((a, b) => b.posY - a.posY))
+      const orders = nodeOrders(depth, graph, config.heigth, prevSpots)
+      console.log("order count: ", orders.length)
 
       orders.forEach(order => {
         spreadAllongY(order, config.heigth)
@@ -182,7 +190,7 @@ export function spreadAllongY<A>(nodes: Node<A>[], canvasHeight: number) {
 }
 
 /**
- * Groups nodes by their optimal y position.Groups will be sorted ascending.
+ * Groups nodes by their optimal y position. Groups will be sorted ascending.
  */
 export function groupNodes<G, A>(depth: number, graph: Graph<G, A>, canvasHeight: number) {
   const nodes = graph.getNodesAtDepth(depth)
@@ -220,7 +228,7 @@ export function groupNodes<G, A>(depth: number, graph: Graph<G, A>, canvasHeight
  * Computes all possible node orders (top to bottom) for nodes of a certain depth
  * based on their optimal position which depends on the source nodes of each node
  */
-export function nodeOrders<G, A>(depth: number, graph: Graph<G, A>, canvasHeight: number) {
+export function nodeOrders<G, A>(depth: number, graph: Graph<G, A>, canvasHeight: number, prevSpots: Spot<A>[]) {
   const nodes = graph.getNodesAtDepth(depth)
   const groups = groupNodes(depth, graph, canvasHeight)
   console.log(
