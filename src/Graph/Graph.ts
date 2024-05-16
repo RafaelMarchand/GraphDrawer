@@ -2,7 +2,7 @@ import Node from "./Node"
 
 const STARTING_DEPTH = 0
 
-export default class Graph<G, A = any> {
+export default class Graph<G, A = null> {
   nodes: Node<A>[]
   rootNodeKeys: string[]
   depth: number
@@ -57,16 +57,6 @@ export default class Graph<G, A = any> {
     return rootNodes
   }
 
-  getDestNodes(node: Node<A>): Node<A>[] {
-    return node.edges.map((edge: string) => {
-      return this.nodes.find((node: Node<A>) => node.key === edge)!
-    })
-  }
-
-  getSrcNodes(destNode: Node<A>): Node<A>[] {
-    return this.nodes.filter((node) => node.edges.includes(destNode.key))
-  }
-
   setDepthNodes() {
     this.getRootNodes().forEach((node) => {
       this.setDepthNode(node, STARTING_DEPTH)
@@ -79,7 +69,7 @@ export default class Graph<G, A = any> {
       this.depth = depth
     }
     node.depth = depth
-    this.getDestNodes(node).forEach((destNode) => {
+    node.edges.forEach((destNode) => {
       this.setDepthNode(destNode, nextDepth)
     })
   }

@@ -1,7 +1,7 @@
 import Graphology from "graphology"
 import GraphDrawer from "../src/main"
 
-const graph = new Graphology.Graph()
+const graph = new Graphology.Graph({type: "directed"})
 
 graph.addNode("1", { value: 0.0 })
 
@@ -42,7 +42,7 @@ const graphMethods = {
   getDestNodeKeys: (graph, nodeKey) =>
     graph.mapOutEdges(nodeKey, (_edge, _attributes, _source, target) => target),
   getSrcNodeKeys: (graph, nodeKey) =>
-    graph.mapInEdges(nodeKey, (_edge, _attributes, _source, target) => target),
+    graph.mapInEdges(nodeKey, (_edge, _attributes, source, _target) => source),
   getNodeAttribute: (graph, nodeKey) => graph.getNodeAttributes(nodeKey)
 }
 

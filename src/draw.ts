@@ -38,7 +38,7 @@ export function draw<G, A>(graph: Graph<G, A>, canvas: HTMLCanvasElement, config
   }
 
   function drawEdges(node: Node<A>) {
-    graph.getDestNodes(node).forEach((destNode: Node<A>) => {
+    node.edges.forEach((destNode: Node<A>) => {
       let xGap = destNode.posX - node.posX
       let p1 = new Position(Math.floor(xGap * CONTROLPOINT + node.posX), node.posY)
       let p2 = new Position(Math.floor(destNode.posX - xGap * CONTROLPOINT), destNode.posY)

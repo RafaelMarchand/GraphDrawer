@@ -4,10 +4,10 @@ export default class Node<A> {
   posY: number
   depth: number | null
   optimalPosY: number
-  edges: string[]
-  inEdges: string[]
+  edges: Node<A>[]
+  inEdges: Node<A>[]
   attributes: A | null
-  constructor(key: string, edges: string[], inEdges: string[], attributes: A | null) {
+  constructor(key: string, edges: Node<A>[], inEdges: Node<A>[], attributes: A | null) {
     this.key = key
     this.posX = 0
     this.posY = 0

@@ -83,17 +83,10 @@ export function setPositions<G, A>(graph: Graph<G, A>, config: Config<A>) {
     let arrangements: Arrangement<A>[] = []
 
     for (const arrangement of prevArrangements) {
-      const prevSpots = arrangement.spots.filter(spot => spot.node.depth === (depth - 1)) 
-      const prevNodes = prevSpots.map(spot => spot.node)
+      const prevNodes = arrangement.spots.filter(spot => spot.node.depth === (depth - 1)).map(spot => spot.node)
       spreadAllongY(prevNodes, config.heigth)
-      // prevNodes.forEach((node, index) => {
-      //   node.setPosY(prevSpots[index].posY)
-      // } )
-      console.log("prevNodes",prevNodes.map(n => n.key))
-      // console.log("prevNodes",prevNodes.sort((a,b) => b.posY-a.posY))
-      // console.log("prevSpots", prevSpots.map(n => n.node.key)) 
-     // console.log("prevSpots", prevSpots.sort((a, b) => b.posY - a.posY))
-      const orders = nodeOrders(depth, graph, config.heigth, prevSpots)
+
+      const orders = nodeOrders(depth, graph, config.heigth, arrangement)
       console.log("order count: ", orders.length)
 
       orders.forEach(order => {
@@ -153,7 +146,7 @@ export function setPositions<G, A>(graph: Graph<G, A>, config: Config<A>) {
   function getEdges(nodes: Node<A>[]) {
     const edges: Edge<A>[] = []
     nodes.forEach((node) => {
-      graph.getDestNodes(node).forEach((destNode) => {
+      node.edges.forEach((destNode) => {
         edges.push({ srcNode: node, destNode: destNode })
       })
     })
@@ -192,10 +185,11 @@ export function spreadAllongY<A>(nodes: Node<A>[], canvasHeight: number) {
 /**
  * Groups nodes by their optimal y position. Groups will be sorted ascending.
  */
-export function groupNodes<G, A>(depth: number, graph: Graph<G, A>, canvasHeight: number) {
+export function groupNodes<G, A>(depth: number, graph: Graph<G, A>, canvasHeight: number, arrangement: Arrangement<A>) {
+
   const nodes = graph.getNodesAtDepth(depth)
   nodes.forEach((node) => {
-    node.optimalPosY = optimalPositionY(graph.getSrcNodes(node), canvasHeight)
+    node.optimalPosY = optimalPositionY(node.inEdges, canvasHeight)
   })
   nodes.sort((nodeA, nodeB) => nodeA.optimalPosY - nodeB.optimalPosY)
 
@@ -207,7 +201,6 @@ export function groupNodes<G, A>(depth: number, graph: Graph<G, A>, canvasHeight
     if (!prevNode) {
       currentGroup.push(node)
     }
-
     if (prevNode && prevNode.optimalPosY === node.optimalPosY) {
       currentGroup.push(node)
     }
@@ -216,7 +209,6 @@ export function groupNodes<G, A>(depth: number, graph: Graph<G, A>, canvasHeight
       currentGroup.length = 0
       currentGroup.push(node)
     }
-
     prevNode = node
   })
 
@@ -228,14 +220,8 @@ export function groupNodes<G, A>(depth: number, graph: Graph<G, A>, canvasHeight
  * Computes all possible node orders (top to bottom) for nodes of a certain depth
  * based on their optimal position which depends on the source nodes of each node
  */
-export function nodeOrders<G, A>(depth: number, graph: Graph<G, A>, canvasHeight: number, prevSpots: Spot<A>[]) {
-  const nodes = graph.getNodesAtDepth(depth)
-  const groups = groupNodes(depth, graph, canvasHeight)
-  console.log(
-    groups,
-    nodes.map((n) => n.key),
-    graph.getNodesAtDepth(depth - 1).map((n) => n.key)
-  )
+export function nodeOrders<G, A>(depth: number, graph: Graph<G, A>, canvasHeight: number, arrangement: Arrangement<A>) {
+  const groups = groupNodes(depth, graph, canvasHeight, arrangement)
 
   return groups.reduce((accumulator: Node<A>[][], group) => {
     if (accumulator.length === 0) {

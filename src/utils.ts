@@ -36,8 +36,17 @@ export type GraphMethods<G, A> = {
   getNodeAttribute: ((graph: G, nodeKey: string) => A) | null
 }
 
+type TempNode<A> = {
+  key: string
+  edges: string []
+  inEdges: string []
+  attribute: A | null
+}
+
 export function convert<G, A>(graph: G, rootNodeKeys: string[], graphMethods: GraphMethods<G, A>) {
+  const tempNodes: TempNode<A> [] = []
   const nodes: Node<A>[] = []
+
   graphMethods.getNodeKeys(graph).forEach((key: string) => {
     let attribute = null
     if (graphMethods.getNodeAttribute) {
@@ -46,7 +55,14 @@ export function convert<G, A>(graph: G, rootNodeKeys: string[], graphMethods: Gr
     const edges = graphMethods.getDestNodeKeys(graph, key)
     const inEdges = graphMethods.getSrcNodeKeys(graph, key)
 
-    nodes.push(new Node<A>(key, edges, inEdges, attribute))
+    tempNodes.push({key, edges, inEdges, attribute})
+    nodes.push(new Node(key, [], [], attribute))
   })
+
+  nodes.forEach((node, index) => {
+    node.inEdges = nodes.filter(n => tempNodes[index].inEdges.includes(n.key))
+    node.edges = nodes.filter(n => tempNodes[index].edges.includes(n.key))
+  })
+
   return new Graph<G, A>(nodes, rootNodeKeys)
 }
