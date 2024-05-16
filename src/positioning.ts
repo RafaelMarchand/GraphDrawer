@@ -7,13 +7,15 @@ const Y_SCALING = 1.6
 
 type Edge<A> = { srcNode: Node<A>; destNode: Node<A> }
 
+type Edge1<A> = { srcNode: Spot<A>; destNode: Spot<A> }
+
 type Spot<A> = {
   posY: number
   node: Node<A>
   optimalPosY: number
 }
 
-type Arrangement<A> = {
+export type Arrangement<A> = {
   spots: Spot<A>[]
   intersections: number
 }
@@ -86,8 +88,21 @@ export function setPositions<G, A>(graph: Graph<G, A>, config: Config<A>) {
       const prevNodes = arrangement.spots.filter(spot => spot.node.depth === (depth - 1)).map(spot => spot.node)
       spreadAllongY(prevNodes, config.heigth)
 
-      const orders = nodeOrders(depth, graph, config.heigth, arrangement)
-      console.log("order count: ", orders.length)
+      const orders = nodeOrders(graph.getNodesAtDepth(depth), config.heigth, arrangement)
+      const ordersSpos = spotOrders(graph.getNodesAtDepth(depth), config.heigth, arrangement)
+
+      // ordersSpos.forEach((order) => {
+      //   order.forEach((spot, index) => {
+      //     spot.posY = positions[index]
+      //   })
+      //   arrangements.push(
+      //     {
+      //       spots: [...arrangement.spots, ...order ],
+      //       intersections: arrangement.intersections + intersectionCountOutEdges1(arrangement.spots.filter(s => s.node.depth === depth))
+      //     }
+      //   )
+      // })
+
 
       orders.forEach(order => {
         spreadAllongY(order, config.heigth)
@@ -106,7 +121,7 @@ export function setPositions<G, A>(graph: Graph<G, A>, config: Config<A>) {
           }
         )
       })
-    }
+     }
     return arrangements
   }
 
@@ -124,34 +139,79 @@ export function setPositions<G, A>(graph: Graph<G, A>, config: Config<A>) {
     return spotsArr
   }
 
-  function intersectionCountOutEdges(nodes: Node<A>[]) {
-    let count = 0
-    const edges = getEdges(nodes)
-    const edgesToCompare = [...edges]
+}
 
-    // comare all edges with each other to check for intersection
-    for (let i = edges.length - 1; i >= 0; i--) {
-      for (let j = edgesToCompare.length - 1; j >= 0; j--) {
-        if (i !== j) {
-          if (checkIntersection(edges[i], edgesToCompare[j])) {
-            count++
-          }
+function intersectionCountOutEdges<A>(nodes: Node<A>[]) {
+  let count = 0
+  const edges = getEdges(nodes)
+  const edgesToCompare = [...edges]
+
+  // comare all edges with each other to check for intersection
+  for (let i = edges.length - 1; i >= 0; i--) {
+    for (let j = edgesToCompare.length - 1; j >= 0; j--) {
+      if (i !== j) {
+        if (checkIntersection(edges[i], edgesToCompare[j])) {
+          count++
         }
       }
-      edgesToCompare.pop()
     }
-    return count
+    edgesToCompare.pop()
   }
+  return count
+}
 
-  function getEdges(nodes: Node<A>[]) {
-    const edges: Edge<A>[] = []
-    nodes.forEach((node) => {
-      node.edges.forEach((destNode) => {
-        edges.push({ srcNode: node, destNode: destNode })
-      })
-    })
-    return edges
+function intersectionCountOutEdges1<A>(spots: Spot<A>[]) {
+  let count = 0
+  const edges = getEdgesFromSpots(spots)
+  const edgesToCompare = [...edges]
+
+  // comare all edges with each other to check for intersection
+  for (let i = edges.length - 1; i >= 0; i--) {
+    for (let j = edgesToCompare.length - 1; j >= 0; j--) {
+      if (i !== j) {
+        if (checkIntersection1(edges[i], edgesToCompare[j])) {
+          count++
+        }
+      }
+    }
+    edgesToCompare.pop()
   }
+  return count
+}
+
+function getEdges<A>(nodes: Node<A>[]) {
+  const edges: Edge<A>[] = []
+  nodes.forEach((node) => {
+    node.edges.forEach((destNode) => {
+      edges.push({ srcNode: node, destNode: destNode })
+    })
+  })
+  return edges
+}
+
+function getEdgesFromSpots<A>(spots: Spot<A>[]) {
+  const edges: Edge1<A>[] = []
+  spots.forEach((spot) => {
+    spot.node.edges.forEach((destNode) => {
+      edges.push({ srcNode: spot, destNode: spots.find(spot => spot.node.key === destNode.key)! })
+    })
+  })
+  return edges
+}
+
+function optimalPositionYSpots<A>(srcSpots: Spot<A>[], canvasHeigth: number) {
+  let minimalDistance = Infinity
+  let optimalPosition = 0
+  for (let y = 0; y < canvasHeigth; y++) {
+    const distance = srcSpots.reduce((distance, srcSpot) => {
+      return Math.floor(distance + Math.pow(srcSpot.posY - y, 2))
+    }, 0)
+    if (distance < minimalDistance) {
+      minimalDistance = distance
+      optimalPosition = y
+    }
+  }
+  return optimalPosition
 }
 
 function optimalPositionY<A>(srcNodes: Node<A>[], canvasHeigth: number) {
@@ -185,9 +245,7 @@ export function spreadAllongY<A>(nodes: Node<A>[], canvasHeight: number) {
 /**
  * Groups nodes by their optimal y position. Groups will be sorted ascending.
  */
-export function groupNodes<G, A>(depth: number, graph: Graph<G, A>, canvasHeight: number, arrangement: Arrangement<A>) {
-
-  const nodes = graph.getNodesAtDepth(depth)
+export function groupNodes<A>(nodes: Node<A>[], canvasHeight: number) {
   nodes.forEach((node) => {
     node.optimalPosY = optimalPositionY(node.inEdges, canvasHeight)
   })
@@ -217,11 +275,53 @@ export function groupNodes<G, A>(depth: number, graph: Graph<G, A>, canvasHeight
 }
 
 /**
+ * Groups spots by their optimal y position. Groups will be sorted ascending.
+ */
+export function groupSpots<A>(nodes: Node<A>[], canvasHeight: number, arrangement: Arrangement<A>) {
+  const spots: Spot<A>[] = []
+
+  nodes.forEach(node => {
+    const srcSpots = arrangement.spots.filter(spot => {
+      return spot.node.edges.map(node => node.key).includes(node.key) 
+    })
+    spots.push({
+        node: node,
+        posY: 0,
+        optimalPosY: optimalPositionYSpots(srcSpots, canvasHeight)
+      })
+  })
+
+  spots.sort((spotA, spotB) => spotA.optimalPosY - spotB.optimalPosY)
+
+  const groups: Spot<A>[][] = []
+  const currentGroup:  Spot<A>[] = []
+  let prevSpot: null |  Spot<A>
+
+  spots.forEach((spot) => {
+    if (!prevSpot) {
+      currentGroup.push(spot)
+    }
+    if (prevSpot && prevSpot.optimalPosY === spot.optimalPosY) {
+      currentGroup.push(spot)
+    }
+    if (prevSpot && prevSpot.optimalPosY !== spot.optimalPosY) {
+      groups.push([...currentGroup])
+      currentGroup.length = 0
+      currentGroup.push(spot)
+    }
+    prevSpot = spot
+  })
+
+  groups.push(currentGroup)
+  return groups
+}
+
+/**
  * Computes all possible node orders (top to bottom) for nodes of a certain depth
  * based on their optimal position which depends on the source nodes of each node
  */
-export function nodeOrders<G, A>(depth: number, graph: Graph<G, A>, canvasHeight: number, arrangement: Arrangement<A>) {
-  const groups = groupNodes(depth, graph, canvasHeight, arrangement)
+export function nodeOrders<A>(nodes: Node<A>[], canvasHeight: number, arrangement: Arrangement<A>) {
+  const groups = groupNodes(nodes, canvasHeight)
 
   return groups.reduce((accumulator: Node<A>[][], group) => {
     if (accumulator.length === 0) {
@@ -237,12 +337,44 @@ export function nodeOrders<G, A>(depth: number, graph: Graph<G, A>, canvasHeight
   }, [])
 }
 
+export function spotOrders<A>(nodes: Node<A>[], canvasHeight: number, arrangement: Arrangement<A>) {
+  const groups = groupSpots(nodes, canvasHeight, arrangement)
+
+  return groups.reduce((accumulator: Spot<A>[][], group) => {
+    if (accumulator.length === 0) {
+      return permutator(group)
+    }
+    const newOrders: Spot<A>[][] = []
+    accumulator.forEach((order) => {
+      permutator(group).forEach((permu) => {
+        newOrders.push([...order, ...permu])
+      })
+    })
+    return newOrders
+  }, [])
+}
+
 function checkIntersection<A>(edgeA: Edge<A>, edgeB: Edge<A>) {
   let [a1, b1] = linearCoefficient(edgeA.srcNode, edgeA.destNode)
   let [a2, b2] = linearCoefficient(edgeB.srcNode, edgeB.destNode)
   try {
     const [[intersectionX]]: any = usolve([[a2 - a1]], [b1 - b2])
     if (intersectionX > edgeA.srcNode.posX + 1 && intersectionX < edgeB.destNode.posX - 1) {
+      return 1
+    } else {
+      return false
+    }
+  } catch (error) {
+    return true
+  }
+}
+
+function checkIntersection1<A>(edgeA: Edge1<A>, edgeB: Edge1<A>) {
+  let [a1, b1] = linearCoefficient(edgeA.srcNode.node, edgeA.destNode.node)
+  let [a2, b2] = linearCoefficient(edgeB.srcNode.node, edgeB.destNode.node)
+  try {
+    const [[intersectionX]]: any = usolve([[a2 - a1]], [b1 - b2])
+    if (intersectionX > edgeA.srcNode.node.posX + 1 && intersectionX < edgeB.destNode.node.posX - 1) {
       return 1
     } else {
       return false

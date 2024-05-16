@@ -30,7 +30,6 @@ graph.addEdge("7", "9")
 const container = document.getElementById("app")
 const config = {
   nodeColor: (a) => {
-    console.log(a)
     if (a.value === 5) {
       return "red"
     }
