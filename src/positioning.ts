@@ -52,7 +52,7 @@ export function setPositions<G, A>(graph: Graph<G, A>, config: Config<A>) {
       return a.intersections - b.intersections
     })
     console.log(sorted)
-    setArrangementPositions(sorted[0])
+    setArrangementPositions(sorted[13])
   }
 
   function setArrangementPositions(arrangement: Arrangement<A>) {
@@ -91,14 +91,19 @@ export function setPositions<G, A>(graph: Graph<G, A>, config: Config<A>) {
       const orders = nodeOrders(graph.getNodesAtDepth(depth), config.heigth, arrangement)
       const ordersSpos = spotOrders(graph.getNodesAtDepth(depth), config.heigth, arrangement)
 
+      // console.log(orders)
+      // console.log(ordersSpos)
+
       // ordersSpos.forEach((order) => {
+      //   spreadAllongY(order.map(spot => spot.node), config.heigth)
       //   order.forEach((spot, index) => {
       //     spot.posY = positions[index]
       //   })
+      //   console.log(order)
       //   arrangements.push(
       //     {
       //       spots: [...arrangement.spots, ...order ],
-      //       intersections: arrangement.intersections + intersectionCountOutEdges1(arrangement.spots.filter(s => s.node.depth === depth))
+      //       intersections: arrangement.intersections + intersectionCountOutEdges(prevNodes)
       //     }
       //   )
       // })
@@ -160,40 +165,12 @@ function intersectionCountOutEdges<A>(nodes: Node<A>[]) {
   return count
 }
 
-function intersectionCountOutEdges1<A>(spots: Spot<A>[]) {
-  let count = 0
-  const edges = getEdgesFromSpots(spots)
-  const edgesToCompare = [...edges]
-
-  // comare all edges with each other to check for intersection
-  for (let i = edges.length - 1; i >= 0; i--) {
-    for (let j = edgesToCompare.length - 1; j >= 0; j--) {
-      if (i !== j) {
-        if (checkIntersection1(edges[i], edgesToCompare[j])) {
-          count++
-        }
-      }
-    }
-    edgesToCompare.pop()
-  }
-  return count
-}
 
 function getEdges<A>(nodes: Node<A>[]) {
   const edges: Edge<A>[] = []
   nodes.forEach((node) => {
     node.edges.forEach((destNode) => {
       edges.push({ srcNode: node, destNode: destNode })
-    })
-  })
-  return edges
-}
-
-function getEdgesFromSpots<A>(spots: Spot<A>[]) {
-  const edges: Edge1<A>[] = []
-  spots.forEach((spot) => {
-    spot.node.edges.forEach((destNode) => {
-      edges.push({ srcNode: spot, destNode: spots.find(spot => spot.node.key === destNode.key)! })
     })
   })
   return edges
