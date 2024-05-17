@@ -121,11 +121,30 @@ export function setPositions<G, A>(graph: Graph<G, A>, config: Config<A>) {
         })
         arrangements.push(
           {
-            spots: [...arrangement.spots, ...spots ],
+            spots: [...arrangement.spots, ...order ],
             intersections: arrangement.intersections + intersectionCountOutEdges(prevNodes)
           }
         )
       })
+
+
+      // orders.forEach(order => {
+      //   spreadAllongY(order, config.heigth)
+        
+      //   const spots: Spot<A>[] = order.map((node, index) => {
+      //     return {
+      //       posY: positions[index],
+      //       node: node,
+      //       optimalPosY: 0
+      //     }
+      //   })
+      //   arrangements.push(
+      //     {
+      //       spots: [...arrangement.spots, ...spots ],
+      //       intersections: arrangement.intersections + intersectionCountOutEdges(prevNodes)
+      //     }
+      //   )
+      // })
      }
     return arrangements
   }
@@ -164,7 +183,6 @@ function intersectionCountOutEdges<A>(nodes: Node<A>[]) {
   }
   return count
 }
-
 
 function getEdges<A>(nodes: Node<A>[]) {
   const edges: Edge<A>[] = []
@@ -346,20 +364,7 @@ function checkIntersection<A>(edgeA: Edge<A>, edgeB: Edge<A>) {
   }
 }
 
-function checkIntersection1<A>(edgeA: Edge1<A>, edgeB: Edge1<A>) {
-  let [a1, b1] = linearCoefficient(edgeA.srcNode.node, edgeA.destNode.node)
-  let [a2, b2] = linearCoefficient(edgeB.srcNode.node, edgeB.destNode.node)
-  try {
-    const [[intersectionX]]: any = usolve([[a2 - a1]], [b1 - b2])
-    if (intersectionX > edgeA.srcNode.node.posX + 1 && intersectionX < edgeB.destNode.node.posX - 1) {
-      return 1
-    } else {
-      return false
-    }
-  } catch (error) {
-    return true
-  }
-}
+
 
 function linearCoefficient<A>(srcNode: Node<A>, destNode: Node<A>) {
   let x1 = srcNode.posX
