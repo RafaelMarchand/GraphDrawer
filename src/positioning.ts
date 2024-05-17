@@ -7,8 +7,6 @@ const Y_SCALING = 1.6
 
 type Edge<A> = { srcNode: Node<A>; destNode: Node<A> }
 
-type Edge1<A> = { srcNode: Spot<A>; destNode: Spot<A> }
-
 type Spot<A> = {
   posY: number
   node: Node<A>
@@ -52,7 +50,7 @@ export function setPositions<G, A>(graph: Graph<G, A>, config: Config<A>) {
       return a.intersections - b.intersections
     })
     console.log(sorted)
-    setArrangementPositions(sorted[13])
+    setArrangementPositions(sorted[5])
   }
 
   function setArrangementPositions(arrangement: Arrangement<A>) {
@@ -85,6 +83,7 @@ export function setPositions<G, A>(graph: Graph<G, A>, config: Config<A>) {
     let arrangements: Arrangement<A>[] = []
 
     for (const arrangement of prevArrangements) {
+      console.log(arrangement.spots)
       const prevNodes = arrangement.spots.filter(spot => spot.node.depth === (depth - 1)).map(spot => spot.node)
       spreadAllongY(prevNodes, config.heigth)
 
@@ -108,7 +107,6 @@ export function setPositions<G, A>(graph: Graph<G, A>, config: Config<A>) {
       //   )
       // })
 
-
       orders.forEach(order => {
         spreadAllongY(order, config.heigth)
         
@@ -121,30 +119,11 @@ export function setPositions<G, A>(graph: Graph<G, A>, config: Config<A>) {
         })
         arrangements.push(
           {
-            spots: [...arrangement.spots, ...order ],
+            spots: [...arrangement.spots, ...spots ],
             intersections: arrangement.intersections + intersectionCountOutEdges(prevNodes)
           }
         )
       })
-
-
-      // orders.forEach(order => {
-      //   spreadAllongY(order, config.heigth)
-        
-      //   const spots: Spot<A>[] = order.map((node, index) => {
-      //     return {
-      //       posY: positions[index],
-      //       node: node,
-      //       optimalPosY: 0
-      //     }
-      //   })
-      //   arrangements.push(
-      //     {
-      //       spots: [...arrangement.spots, ...spots ],
-      //       intersections: arrangement.intersections + intersectionCountOutEdges(prevNodes)
-      //     }
-      //   )
-      // })
      }
     return arrangements
   }
