@@ -2,7 +2,7 @@ export default class Node<A> {
   key: string
   posX: number
   posY: number
-  depth: number | null
+  depth: number
   optimalPosY: number
   edges: Node<A>[]
   inEdges: Node<A>[]
@@ -11,7 +11,7 @@ export default class Node<A> {
     this.key = key
     this.posX = 0
     this.posY = 0
-    this.depth = null
+    this.depth = 0
     this.optimalPosY = 0
     this.edges = edges
     this.inEdges = inEdges

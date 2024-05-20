@@ -2,19 +2,49 @@ import Node from "./Node"
 
 const STARTING_DEPTH = 0
 
-export default class Graph<G, A = null> {
+export default class Graph<A = null> {
   nodes: Node<A>[]
   rootNodeKeys: string[]
-  depth: number
+  isDepthSet: Boolean
 
-  constructor(nodes: Node<A>[], rootNodeKeys: string[]) {
+  constructor(nodes: Node<A>[] = [], rootNodeKeys: string[] = []) {
     this.nodes = nodes
     this.rootNodeKeys = rootNodeKeys
-    this.depth = STARTING_DEPTH
+    this.isDepthSet = true
     this.setDepthNodes()
   }
 
-  equalValues(graph: Graph<G, A>) {
+  addRootNode(node: Node<A>) {
+    node.depth = 0
+    this.nodes.push(node)
+    this.rootNodeKeys.push(node.key)
+  }
+
+  addNode(node: Node<A>) {
+    this.nodes.push(node)
+    node.edges.forEach((edgeNode) => {
+      edgeNode.inEdges.push(node)
+    })
+    node.inEdges.forEach((edgeNode) => {
+      edgeNode.edges.push(node)
+    })
+    this.isDepthSet = false
+  }
+
+  getDepth() {
+    if (!this.isDepthSet) {
+      this.setDepthNodes()
+    }
+    let depth = 0
+    this.nodes.forEach((node) => {
+      if (node.depth > depth) {
+        depth = node.depth
+      }
+    })
+    return depth
+  }
+
+  equalValues(graph: Graph<A>) {
     if (this.nodes.length !== graph.nodes.length) return false
 
     for (let i = 0; i < this.nodes.length; i++) {
@@ -25,7 +55,7 @@ export default class Graph<G, A = null> {
     return true
   }
 
-  equalStructure(graph: Graph<G, A>) {
+  equalStructure(graph: Graph<A>) {
     if (this.rootNodeKeys.length !== graph.rootNodeKeys.length) return false
     this.rootNodeKeys.forEach((rootNodeKey) => {
       if (!graph.rootNodeKeys.includes(rootNodeKey)) {
@@ -44,6 +74,9 @@ export default class Graph<G, A = null> {
   }
 
   getNodesAtDepth(depth: number): Node<A>[] {
+    if (!this.isDepthSet) {
+      this.setDepthNodes()
+    }
     return this.nodes.filter((node) => node.depth === depth)
   }
 
@@ -61,14 +94,14 @@ export default class Graph<G, A = null> {
     this.getRootNodes().forEach((node) => {
       this.setDepthNode(node, STARTING_DEPTH)
     })
+    this.isDepthSet = true
   }
 
   setDepthNode(node: Node<A>, depth: number) {
     const nextDepth = depth + 1
-    if (this.depth < depth) {
-      this.depth = depth
+    if (node.depth < depth) {
+      node.depth = depth
     }
-    node.depth = depth
     node.edges.forEach((destNode) => {
       this.setDepthNode(destNode, nextDepth)
     })

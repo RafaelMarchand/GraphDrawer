@@ -1,6 +1,6 @@
 import Graph from "./Graph/Graph.js"
 import Node from "./Graph/Node.js"
-import Position from "./Position.js"
+import Position from "./Vec.js"
 import { draw } from "./draw.js"
 import { setPositions } from "./positioning.js"
 import { GraphMethods, convert, getConfig, getValue } from "./utils.js"
@@ -41,13 +41,13 @@ export default class GraphDrawer<G, A> {
   graphMethods: GraphMethods<G, A>
   config: Config<A>
   canvas: HTMLCanvasElement
-  graph: Graph<G, A>
+  graph: Graph<A>
 
   constructor(graphMethods: GraphMethods<G, A>, container: HTMLElement, config: ConfigInput<A>) {
     this.graphMethods = graphMethods
     this.config = getConfig<A>(config)
     this.canvas = this.initialize(container)
-    this.graph = new Graph<G, A>([], [])
+    this.graph = new Graph<A>([], [])
   }
 
   initialize(container: HTMLElement): HTMLCanvasElement {
@@ -106,7 +106,7 @@ export default class GraphDrawer<G, A> {
     this.graph = newGraph
 
     if (!equalStructure) {
-      setPositions(this.graph, this.config)
+      setPositions(this.graph, this.config, this.canvas)
     }
 
     if (!equalStructure || !equalValues) {

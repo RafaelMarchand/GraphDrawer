@@ -1,7 +1,7 @@
 import Graphology from "graphology"
 import GraphDrawer from "../src/main"
 
-const graph = new Graphology.Graph({type: "directed"})
+const graph = new Graphology.Graph({ type: "directed" })
 
 graph.addNode("1", { value: 0.0 })
 
@@ -26,6 +26,8 @@ graph.addEdge("5", "7")
 graph.addEdge("3", "8")
 
 graph.addEdge("7", "9")
+
+graph.addEdge("1", "9")
 
 const container = document.getElementById("app")
 const config = {

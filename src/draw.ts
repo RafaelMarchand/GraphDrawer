@@ -1,14 +1,15 @@
 import Graph from "./Graph/Graph.ts"
 import Node from "./Graph/Node.ts"
-import Position from "./Position.ts"
+import Position from "./Vec.ts"
 import { Config } from "./main.ts"
+import { Arrangement, Spot } from "./positioning.ts"
 import { getValue } from "./utils.ts"
 
 type Context = CanvasRenderingContext2D
 
 const CONTROLPOINT = 0.7
 
-export function draw<G, A>(graph: Graph<G, A>, canvas: HTMLCanvasElement, config: Config<A>) {
+export function draw<A>(graph: Graph<A>, canvas: HTMLCanvasElement, config: Config<A>) {
   const context = canvas.getContext("2d")!
 
   drawBackground(context, config)
