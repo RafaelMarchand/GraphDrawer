@@ -14,8 +14,8 @@ export function draw<A>(graph: Graph<A>, canvas: HTMLCanvasElement, config: Conf
 
   drawBackground(context, config)
   graph.nodes.forEach((node) => {
-    drawNode(node)
     drawEdges(node)
+    drawNode(node)
   })
 
   function drawBackground(context: Context, config: Config<A>) {

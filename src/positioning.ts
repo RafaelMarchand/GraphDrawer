@@ -52,7 +52,7 @@ export function setPositions<A>(graph: Graph<A>, config: Config<A>, canvas: HTML
       console.log("------------------------")
       console.log(arrangment.intersections)
       console.log(intersectionsGraph(graph))
-      //debugger
+      debugger
     })
     const sorted = arrangements.sort((a, b) => {
       return a.intersections - b.intersections

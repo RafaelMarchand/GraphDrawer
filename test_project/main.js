@@ -27,7 +27,9 @@ graph.addEdge("3", "8")
 
 graph.addEdge("7", "9")
 
+// long edges
 graph.addEdge("1", "9")
+//graph.addEdge("3", "9")
 
 const container = document.getElementById("app")
 const config = {

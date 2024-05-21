@@ -7,6 +7,7 @@ export default class Node<A> {
   edges: Node<A>[]
   inEdges: Node<A>[]
   attributes: A | null
+  dummy: boolean
   constructor(key: string, edges: Node<A>[], inEdges: Node<A>[], attributes: A | null) {
     this.key = key
     this.posX = 0
@@ -16,6 +17,7 @@ export default class Node<A> {
     this.edges = edges
     this.inEdges = inEdges
     this.attributes = attributes
+    this.dummy = false
   }
 
   equalValues(node: Node<A>) {

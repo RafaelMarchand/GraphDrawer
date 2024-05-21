@@ -12,6 +12,11 @@ export default class Graph<A = null> {
     this.rootNodeKeys = rootNodeKeys
     this.isDepthSet = true
     this.setDepthNodes()
+    this.createDummyNodes()
+  }
+
+  createDummyNodes(){
+    
   }
 
   addRootNode(node: Node<A>) {
