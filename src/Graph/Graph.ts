@@ -15,8 +15,40 @@ export default class Graph<A = null> {
     this.createDummyNodes()
   }
 
-  createDummyNodes(){
-    
+  createDummyNodes() {
+    this.nodes.forEach(node => {
+      node.edges.forEach(destNode => {
+        const edgeLength = destNode.depth - node.depth
+        this.createDummyNode(node, destNode, edgeLength)
+
+      })
+    }) 
+  }
+
+  createDummyNode(node: Node<A>, destNode: Node<A>, edgeLength: number, i = 1) {
+    if (i + 1 < edgeLength) {
+      this.addNode(new Node<A>(
+        `${node.key}_to_${destNode.key}_${i}`,
+        [],
+        [node],
+        null
+      ))
+    }
+
+    this.addNode(new Node<A>(
+      `${node.key}_to_${destNode.key}_${i}`,
+      [destNode],
+      [node],
+      null
+    ))
+
+    const destKey = i + 1 < edgeLength ?  `${node.key}_to_${destNode.key}_${i + 1}` : destNode.key
+    this.addNode(new Node<A>(
+      `${node.key}_to_${destNode.key}_${i}`,
+      [],
+      [],
+      null
+    ))
   }
 
   addRootNode(node: Node<A>) {
