@@ -46,14 +46,14 @@ export function setPositions<A>(graph: Graph<A>, config: Config<A>, canvas: HTML
       arrangements = getArrangements(i, arrangements)
       //console.log(arrangements)
     }
-    arrangements?.forEach(arrangment => {
-      setArrangementPositions(arrangment)
-      draw(graph, canvas, config)
-      console.log("------------------------")
-      console.log(arrangment.intersections)
-      console.log(intersectionsGraph(graph))
-      debugger
-    })
+    // arrangements?.forEach(arrangment => {
+    //   setArrangementPositions(arrangment)
+    //   draw(graph, canvas, config)
+    //   console.log("------------------------")
+    //   console.log(arrangment.intersections)
+    //   console.log(intersectionsGraph(graph))
+    //   debugger
+    // })
     const sorted = arrangements.sort((a, b) => {
       return a.intersections - b.intersections
     })

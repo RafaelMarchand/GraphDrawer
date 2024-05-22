@@ -29,12 +29,12 @@ graph.addEdge("7", "9")
 
 // long edges
 graph.addEdge("1", "9")
-//graph.addEdge("3", "9")
+graph.addEdge("3", "9")
 
 const container = document.getElementById("app")
 const config = {
   nodeColor: (a) => {
-    if (a.value === 5) {
+    if (a?.value === 5) {
       return "red"
     }
     return "blue"

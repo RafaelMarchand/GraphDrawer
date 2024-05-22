@@ -19,36 +19,37 @@ export default class Graph<A = null> {
     this.nodes.forEach(node => {
       node.edges.forEach(destNode => {
         const edgeLength = destNode.depth - node.depth
-        this.createDummyNode(node, destNode, edgeLength)
+        const dummyNodes: Node<A>[] = []
+        for (let i = 1; i < edgeLength; i++){
+          let srcNodeDummy = dummyNodes.length > 0 ? dummyNodes[dummyNodes.length - 1] : node
 
+          dummyNodes.push(
+            new Node<A>(
+              `${node.key}_dummy_${i}`,
+              [],
+              [srcNodeDummy],
+              null
+            ))
+        }
+        dummyNodes.forEach((dummy, index) => {
+          dummy.dummy = true
+          if (index === 0)  node.edges.push(dummy)
+          if (index === dummyNodes.length - 1){
+            dummy.edges.push(destNode)
+          } else {
+            dummy.edges.push(dummyNodes[index + 1])
+          }
+          dummy.depth = node.depth + index + 1
+        })
+        if (dummyNodes.length > 0) this.removeEdge(node, destNode)
+        this.nodes = [...this.nodes, ...dummyNodes]
       })
     }) 
   }
 
-  createDummyNode(node: Node<A>, destNode: Node<A>, edgeLength: number, i = 1) {
-    if (i + 1 < edgeLength) {
-      this.addNode(new Node<A>(
-        `${node.key}_to_${destNode.key}_${i}`,
-        [],
-        [node],
-        null
-      ))
-    }
-
-    this.addNode(new Node<A>(
-      `${node.key}_to_${destNode.key}_${i}`,
-      [destNode],
-      [node],
-      null
-    ))
-
-    const destKey = i + 1 < edgeLength ?  `${node.key}_to_${destNode.key}_${i + 1}` : destNode.key
-    this.addNode(new Node<A>(
-      `${node.key}_to_${destNode.key}_${i}`,
-      [],
-      [],
-      null
-    ))
+  removeEdge(node: Node<A>, destNode: Node<A>){
+    node.edges = node.edges.filter(edgeNode => edgeNode.key !== destNode.key)
+    destNode.inEdges = destNode.inEdges.filter(edgeNode => edgeNode.key !== node.key)
   }
 
   addRootNode(node: Node<A>) {

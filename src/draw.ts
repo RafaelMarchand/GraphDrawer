@@ -2,7 +2,6 @@ import Graph from "./Graph/Graph.ts"
 import Node from "./Graph/Node.ts"
 import Position from "./Vec.ts"
 import { Config } from "./main.ts"
-import { Arrangement, Spot } from "./positioning.ts"
 import { getValue } from "./utils.ts"
 
 type Context = CanvasRenderingContext2D
@@ -23,6 +22,7 @@ export function draw<A>(graph: Graph<A>, canvas: HTMLCanvasElement, config: Conf
     context.fillRect(0, 0, canvas.width, canvas.height)
   }
   function drawNode(node: Node<A>) {
+    if (node.dummy) return
     context.strokeStyle = getValue(config.nodeBorderColor, node.attributes)
     context.lineWidth = getValue(config.nodeBorderWidth, node.attributes)
     context.beginPath()
