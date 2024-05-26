@@ -110,7 +110,7 @@ export default class GraphDrawer<G, A> {
     }
 
     if (!equalStructure || !equalValues) {
-      draw<G, A>(this.graph, this.canvas, this.config)
+      draw<A>(this.graph, this.canvas, this.config)
     }
   }
 }

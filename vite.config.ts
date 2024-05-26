@@ -16,12 +16,16 @@ export default defineConfig({
   },
   build: {
     lib: {
-      entry: path.resolve(__dirname, "src/main.js"),
-      fileName: "main",
+      entry: path.resolve(__dirname, "src/main.ts"),
+      name: "GraphDrawer",
+      fileName: (format) => `GraphDrawer.${format}.js`,
       formats: ["es", "cjs"]
     },
     rollupOptions: {
-      external: []
+      external: [],
+      output: {
+        globals: {}
+      }
     }
   }
 })

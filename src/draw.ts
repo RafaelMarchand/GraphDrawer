@@ -1,8 +1,8 @@
-import Graph from "./Graph/Graph.ts"
-import Node from "./Graph/Node.ts"
-import Position from "./Vec.ts"
-import { Config } from "./main.ts"
-import { getValue } from "./utils.ts"
+import Graph from "./Graph/Graph"
+import Node from "./Graph/Node"
+import Position from "./Vec"
+import { Config } from "./main"
+import { getValue } from "./utils"
 
 type Context = CanvasRenderingContext2D
 

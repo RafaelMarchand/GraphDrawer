@@ -1,4 +1,4 @@
-import { index, usolve } from "mathjs"
+import { usolve } from "mathjs"
 import Graph from "./Graph/Graph"
 import Node from "./Graph/Node"
 import { Config } from "./main"
@@ -17,11 +17,7 @@ export type Spot<A> = {
 export type Arrangement<A> = {
   spots: Spot<A>[]
   intersections: number
-}
-
-export type Structure<A> = {
-  spots: Spot<A>[]
-  intersections: number
+  totalLengthEdges: number
 }
 
 // prettier-ignore
@@ -46,16 +42,21 @@ export function setPositions<A>(graph: Graph<A>, config: Config<A>, canvas: HTML
       arrangements = getArrangements(i, arrangements)
       //console.log(arrangements)
     }
-    // arrangements?.forEach(arrangment => {
-    //   setArrangementPositions(arrangment)
-    //   draw(graph, canvas, config)
-    //   console.log("------------------------")
-    //   console.log(arrangment.intersections)
-    //   console.log(intersectionsGraph(graph))
-    //   debugger
-    // })
     const sorted = arrangements.sort((a, b) => {
+      const intersectionDiff = a.intersections - b.intersections
+      if (intersectionDiff === 0) {
+        return a.totalLengthEdges - b.totalLengthEdges
+      }
       return a.intersections - b.intersections
+    })
+    arrangements?.forEach(arrangment => {
+      setArrangementPositions(arrangment)
+      draw(graph, canvas, config)
+      console.log("------------------------")
+      console.log(arrangment.totalLengthEdges)
+     console.log(arrangment.intersections)
+      // console.log(intersectionsGraph(graph))
+      debugger
     })
     console.log(sorted)
     setArrangementPositions(sorted[5])
@@ -82,7 +83,8 @@ export function setPositions<A>(graph: Graph<A>, config: Config<A>, canvas: HTML
               optimalPosY: 0
             }
           }),
-          intersections: 0
+          intersections: 0,
+          totalLengthEdges: 0
         }
       })
     }
@@ -108,7 +110,8 @@ export function setPositions<A>(graph: Graph<A>, config: Config<A>, canvas: HTML
         arrangements.push(
           {
             spots: [...arrangement.spots, ...spots ],
-            intersections: arrangement.intersections + intersectionCountOutEdges(prevNodes)
+            intersections: arrangement.intersections + intersectionCountOutEdges(prevNodes),
+            totalLengthEdges: arrangement.totalLengthEdges +  edgeLength(prevNodes)
           }
         )
       })
@@ -132,7 +135,7 @@ export function setPositions<A>(graph: Graph<A>, config: Config<A>, canvas: HTML
 
 }
 
-function intersectionsGraph<A>(graph: Graph<A>) {
+export function intersectionsGraph<A>(graph: Graph<A>) {
   let intersections = 0
   for (let depth = graph.getDepth(); depth > 0; depth--) {
     const nodes = graph.getNodesAtDepth(depth)
@@ -160,6 +163,16 @@ function intersectionsGraph<A>(graph: Graph<A>) {
     })
   }
   return intersections
+}
+
+function edgeLength<A>(nodes: Node<A>[]) {
+  let length = 0
+  nodes.forEach((node) => {
+    node.edges.forEach((destNode) => {
+      length += Math.abs(node.posY - destNode.posY)
+    })
+  })
+  return length
 }
 
 function intersectionCountOutEdges<A>(nodes: Node<A>[]) {

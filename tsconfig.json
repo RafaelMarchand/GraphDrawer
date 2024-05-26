@@ -5,13 +5,18 @@
     "module": "ESNext",
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "skipLibCheck": true,
+    "outDir": "dist",
 
     /* Bundler mode */
     "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": true,
+
+    "declaration": true,
+    "declarationDir": "./dist", // Output directory for declaration files
+    "emitDeclarationOnly": true, // Change to false to emit both declarations and JS
+    "allowImportingTsExtensions": false,
+    "noEmit": false,
 
     /* Linting */
     "strict": true,
@@ -19,5 +24,6 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"] // Exclude directories that don't need to be compiled
 }
