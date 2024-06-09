@@ -1,7 +1,8 @@
 import Graphology from "graphology"
-import GraphDrawer from "../src/main"
+import GraphDrawer, { Config, ConfigInput } from "../../src/main"
+import { GraphMethods } from "../../src/utils"
 
-const graph = new Graphology.Graph({ type: "directed" })
+const graph = new Graphology({ type: "directed" })
 
 graph.addNode("1", { value: 0.0 })
 
@@ -32,7 +33,7 @@ graph.addEdge("1", "9")
 graph.addEdge("3", "9")
 
 const container = document.getElementById("app")
-const config = {
+const config: ConfigInput<Attributes> = {
   nodeColor: (a) => {
     if (a?.value === 5) {
       return "red"
@@ -40,15 +41,19 @@ const config = {
     return "blue"
   }
 }
-const graphMethods = {
+const graphMethods: GraphMethods<Graphology, Attributes> = {
   getNodeKeys: (graph) => graph.mapNodes((key) => key),
   getDestNodeKeys: (graph, nodeKey) =>
     graph.mapOutEdges(nodeKey, (_edge, _attributes, _source, target) => target),
   getSrcNodeKeys: (graph, nodeKey) =>
     graph.mapInEdges(nodeKey, (_edge, _attributes, source, _target) => source),
-  getNodeAttribute: (graph, nodeKey) => graph.getNodeAttributes(nodeKey)
+  getNodeAttribute: (graph, nodeKey) => graph.getNodeAttributes(nodeKey) as Attributes
 }
 
-const graphDrawer = new GraphDrawer(graphMethods, container, config)
+type Attributes = {
+  value: number
+}
+
+const graphDrawer = new GraphDrawer<Graphology, Attributes>(graphMethods, container!, config)
 
 graphDrawer.update(graph, ["1"])

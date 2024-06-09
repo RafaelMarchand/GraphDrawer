@@ -56,7 +56,6 @@ export function setPositions<A>(graph: Graph<A>, config: Config<A>, canvas: HTML
       console.log(arrangment.totalLengthEdges)
      console.log(arrangment.intersections)
       // console.log(intersectionsGraph(graph))
-      debugger
     })
     console.log(sorted)
     setArrangementPositions(sorted[5])
@@ -180,7 +179,7 @@ function intersectionCountOutEdges<A>(nodes: Node<A>[]) {
   const edges = getEdges(nodes)
   const edgesToCompare = [...edges]
 
-  // comare all edges with each other to check for intersection
+  // compare all edges with each other to check for intersection
   for (let i = edges.length - 1; i >= 0; i--) {
     for (let j = edgesToCompare.length - 1; j >= 0; j--) {
       if (i !== j) {
@@ -203,30 +202,6 @@ function getEdges<A>(nodes: Node<A>[]) {
   })
   return edges
 }
-
-// console.log(
-//   optimalPositionYSpots(
-//     [
-//       {
-//         posY: 1,
-//         node: new Node("3", [], [], null),
-//         optimalPosY: 0
-//       },
-//       {
-//         posY: 20,
-//         node: new Node("3", [], [], null),
-//         optimalPosY: 0
-//       },
-//       {
-//         posY: 5,
-//         node: new Node("3", [], [], null),
-//         optimalPosY: 0
-//       }
-//     ],
-//     30
-//   ),
-//   "HI"
-// )
 
 function optimalPositionY<A>(srcNodes: Node<A>[], canvasHeigth: number) {
   let minimalDistance = Infinity
