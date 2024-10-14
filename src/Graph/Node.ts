@@ -1,6 +1,13 @@
 import Position from "../Vec.js"
 import Edge from "./Edge.js"
 
+export type DummyValues<A> = {
+  srcNodeKey: string
+  srcNodeAttributes: A | null
+  destNodeKey: string
+  destNodeAttributes: A | null
+}
+
 export default class Node<A> {
   key: string
   depth: number
@@ -9,10 +16,10 @@ export default class Node<A> {
   attributes: A | null
   clicked: boolean
   mouseOver: boolean
-  dummy: boolean
+  dummyValues: DummyValues<A> | undefined
   edges: Edge<A>[]
   inEdges: Edge<A>[]
-  constructor(key: string, attributes: A | null) {
+  constructor(key: string, attributes: A | null, dummyValues?: DummyValues<A>) {
     this.key = key
     this.depth = 0
     this.position = new Position(0, 0)
@@ -20,9 +27,13 @@ export default class Node<A> {
     this.attributes = attributes
     this.clicked = false
     this.mouseOver = false
-    this.dummy = false
+    this.dummyValues = dummyValues
     this.edges = []
     this.inEdges = []
+  }
+
+  get dummy() {
+    return this.dummyValues !== undefined
   }
 
   get posX() {
@@ -92,14 +103,6 @@ export default class Node<A> {
 
   hasEdges() {
     return this.edges.length !== 0
-  }
-
-  setPosX(pos: number) {
-    this.posX = Math.floor(pos)
-  }
-
-  setPosY(pos: number) {
-    this.posY = Math.floor(pos)
   }
 
   setDepth(depth: number) {

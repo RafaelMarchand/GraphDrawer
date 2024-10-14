@@ -31,7 +31,7 @@ export function setPositions<A>(graph: Graph<A>, config: ConfigIntern<A>, canvas
 
     for (let i = 0; i <= graph.getDepth(); i++) {
       graph.getNodesAtDepth(i).forEach((node) => {
-        node.setPosX(positions[i]) 
+        node.posX =positions[i] 
       })
     }
   }
@@ -208,7 +208,7 @@ export function spreadAllongY<A>(nodes: Node<A>[], canvasHeight: number) {
   const nodeGap = (canvasHeight - padding * 2) / (nodes.length - 1)
   let posAct = padding
   nodes.forEach((node, index) => {
-    node.setPosY(posAct + index * nodeGap)
+    node.posY = posAct + index * nodeGap
   })
 }
 

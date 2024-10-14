@@ -147,7 +147,7 @@ export default class GraphDrawer<G, A> {
 
           if (dist < this.config.edgeEventThreshold) {
             isNearCurve = true
-            console.log(node.key, edge.destNode.key)
+            //console.log(node.key, edge.destNode.key)
             break
           }
         }
@@ -161,6 +161,7 @@ export default class GraphDrawer<G, A> {
 
   nodeAtPosition(pos: Position): Node<A> | null {
     for (const [_key, node] of this.graph.nodes) {
+      if (node.dummy) continue
       const dist = this.distance(pos, node.position)
       const nodeRadius = getValue(this.config.nodeRadius, node.key, node.attributes, node.clicked, node.mouseOver)
 

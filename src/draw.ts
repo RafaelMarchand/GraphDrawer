@@ -1,5 +1,5 @@
 import Graph from "./Graph/Graph"
-import Node from "./Graph/Node"
+import Node, { DummyValues } from "./Graph/Node"
 import { ConfigIntern } from "./main"
 import { getValue } from "./utils"
 
@@ -36,21 +36,26 @@ export function draw<A>(graph: Graph<A>, context: CanvasRenderingContext2D, conf
   }
 
   function drawEdges(node: Node<A>) {
-    node.edges.forEach((edge) => {
-      context.lineWidth = getValue(config.edgeWidth, node.key, edge.destNode.key, node.attributes, edge.destNode.attributes, edge.state.clicked, edge.state.mouseOver)
-      context.strokeStyle = getValue(config.edgeColor, node.key, edge.destNode.key, node.attributes, edge.destNode.attributes, edge.state.clicked, edge.state.mouseOver)
-      const bezierCurve = new Path2D()
-      bezierCurve.moveTo(node.posX, node.posY)
-      bezierCurve.bezierCurveTo(
-        edge.bezierPoints!.cp1.x,
-        edge.bezierPoints!.cp1.y,
-        edge.bezierPoints!.cp2.x,
-        edge.bezierPoints!.cp2.y,
-        edge.destNode.posX,
-        edge.destNode.posY
-      )
+    node.edges.forEach(({ destNode, bezierPoints, state }) => {
+      let vals: DummyValues<A> = {
+        srcNodeKey: node.key,
+        srcNodeAttributes: node.attributes,
+        destNodeKey: destNode.key,
+        destNodeAttributes: destNode.attributes
+      }
+      if (node.dummy) {
+        vals = node.dummyValues!
+      }
+      if (destNode.dummy) {
+        vals = destNode.dummyValues!
+      }
+
+      context.lineWidth = getValue(config.edgeWidth, vals.srcNodeKey, vals.destNodeKey, vals.srcNodeAttributes, vals.destNodeAttributes, state.clicked, state.mouseOver)
+      context.strokeStyle = getValue(config.edgeColor, vals.srcNodeKey, vals.destNodeKey, vals.srcNodeAttributes, vals.destNodeAttributes, state.clicked, state.mouseOver)
       context.beginPath()
-      context.stroke(bezierCurve)
+      context.moveTo(node.posX, node.posY)
+      context.bezierCurveTo(bezierPoints!.cp1.x, bezierPoints!.cp1.y, bezierPoints!.cp2.x, bezierPoints!.cp2.y, destNode.posX, destNode.posY)
+      context.stroke()
     })
   }
 

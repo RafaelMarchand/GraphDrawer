@@ -1,5 +1,5 @@
 import Edge, { State } from "./Edge"
-import Node from "./Node"
+import Node, { DummyValues } from "./Node"
 
 export default class Graph<A = null> {
   nodes: Map<string, Node<A>>
@@ -12,8 +12,8 @@ export default class Graph<A = null> {
     this.isDepthSet = false
   }
 
-  addNode(key: string, attributes: A | null) {
-    const node = new Node(key, attributes)
+  addNode(key: string, attributes: A | null, dummyValues?: DummyValues<A>) {
+    const node = new Node(key, attributes, dummyValues)
     this.nodes.set(key, node)
     return node
   }
@@ -35,7 +35,6 @@ export default class Graph<A = null> {
     this.rootNodeKeys = rootNodeKeys
     this.setDepthNodes()
     this.createDummyNodes()
-    console.log(this)
   }
 
   createDummyNodes() {
@@ -44,13 +43,18 @@ export default class Graph<A = null> {
         const edgeLength = destNode.depth - node.depth
         const dummyNodes: Node<A>[] = []
         const sharedEdgeState = { clicked: false, mouseOver: false }
+        const dummyValues: DummyValues<A> = {
+          srcNodeKey: node.key,
+          srcNodeAttributes: node.attributes,
+          destNodeKey: destNode.key,
+          destNodeAttributes: destNode.attributes
+        }
 
         for (let i = 1; i < edgeLength; i++) {
-          dummyNodes.push(this.addNode(`src_${node.key}_dest${destNode.key}_nr${i}`, null))
+          dummyNodes.push(this.addNode(`src_${node.key}_dest${destNode.key}_nr${i}`, null, dummyValues))
         }
 
         dummyNodes.forEach((dummy, index) => {
-          dummy.dummy = true
           if (index === 0) {
             this.addEdge(node.key, dummy.key, sharedEdgeState)
           }
