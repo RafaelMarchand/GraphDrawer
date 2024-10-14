@@ -1,12 +1,12 @@
 import { usolve } from "mathjs"
 import Graph from "./Graph/Graph"
 import Node from "./Graph/Node"
-import { Config } from "./main"
+import { ConfigIntern } from "./main"
 import { draw } from "./draw"
+import Position from "./Vec.js"
+import Edge from "./Graph/Edge"
 
 const Y_SCALING = 1.6
-
-type Edge<A> = { srcNode: Node<A>; destNode: Node<A> }
 
 export type Spot<A> = {
   posY: number
@@ -21,26 +21,39 @@ export type Arrangement<A> = {
 }
 
 // prettier-ignore
-export function setPositions<A>(graph: Graph<A>, config: Config<A>, canvas: HTMLCanvasElement) {
-  console.log(graph)
+export function setPositions<A>(graph: Graph<A>, config: ConfigIntern<A>, canvas: HTMLCanvasElement) {
   setPositionX()
   setPositionY()
+  setBezierCurvePoints()
 
   function setPositionX() {
-    const distanceBetweenNodes = (config.width - 2 * config.paddingGraph) / graph.getDepth()
+    const positions = getPositionsX(config,graph)
 
     for (let i = 0; i <= graph.getDepth(); i++) {
       graph.getNodesAtDepth(i).forEach((node) => {
-        node.posX = config.paddingGraph + i * distanceBetweenNodes
+        node.setPosX(positions[i]) 
       })
     }
+  }
+
+  function setBezierCurvePoints(){
+    const CONTROLPOINT = 0.7
+
+    graph.nodes.forEach(node => {
+      node.edges.forEach(edge => {
+        let edgeWidth = edge.destNode.posX - node.posX
+        let cp1 = new Position(Math.floor(edgeWidth * CONTROLPOINT + node.posX), node.posY)
+        let cp2 = new Position(Math.floor(edge.destNode.posX - edgeWidth * CONTROLPOINT), edge.destNode.posY)
+
+        edge.bezierPoints = {cp1, cp2 }
+      })
+    })
   }
 
   function setPositionY() {
     let arrangements: Arrangement<A>[] = []
     for (let i = 0; i <= graph.getDepth(); i++) {
       arrangements = getArrangements(i, arrangements)
-      //console.log(arrangements)
     }
     const sorted = arrangements.sort((a, b) => {
       const intersectionDiff = a.intersections - b.intersections
@@ -50,15 +63,11 @@ export function setPositions<A>(graph: Graph<A>, config: Config<A>, canvas: HTML
       return a.intersections - b.intersections
     })
     arrangements?.forEach(arrangment => {
-      setArrangementPositions(arrangment)
-      draw(graph, canvas, config)
-      console.log("------------------------")
-      console.log(arrangment.totalLengthEdges)
-     console.log(arrangment.intersections)
-      // console.log(intersectionsGraph(graph))
+      //setArrangementPositions(arrangment)
+      // draw each arrangement for debugin purposes
+      //draw(graph, canvas, config)
     })
-    console.log(sorted)
-    setArrangementPositions(sorted[5])
+    setArrangementPositions(sorted[0])
   }
 
   function setArrangementPositions(arrangement: Arrangement<A>) {
@@ -66,7 +75,6 @@ export function setPositions<A>(graph: Graph<A>, config: Config<A>, canvas: HTML
       spot.node.posY = spot.posY
     })
   }
-
 
   function getArrangements(depth: number, prevArrangements: Arrangement<A>[]){
     const nodes = graph.getNodesAtDepth(depth)
@@ -92,12 +100,12 @@ export function setPositions<A>(graph: Graph<A>, config: Config<A>, canvas: HTML
 
     for (const arrangement of prevArrangements) {
       const prevNodes = arrangement.spots.filter(spot => spot.node.depth === (depth - 1)).map(spot => spot.node)
-      spreadAllongY(prevNodes, config.heigth)
+      spreadAllongY(prevNodes, config.height)
 
-      const orders = nodeOrders(graph.getNodesAtDepth(depth), config.heigth)
+      const orders = nodeOrders(graph.getNodesAtDepth(depth), config.height)
 
       orders.forEach(order => {
-        spreadAllongY(order, config.heigth)
+        spreadAllongY(order, config.height)
         
         const spots: Spot<A>[] = order.map((node, index) => {
           return {
@@ -120,55 +128,34 @@ export function setPositions<A>(graph: Graph<A>, config: Config<A>, canvas: HTML
 
   function getPositionsY(spots: number) {
     if (spots === 1) {
-      return [config.heigth / 2]
+      return [config.height / 2]
     }
     const spotsArr = []
-    const padding = config.heigth / (spots * Y_SCALING)
-    const nodeGap = (config.heigth - padding * 2) / (spots - 1)
+    const padding = config.height / (spots * Y_SCALING)
+    const nodeGap = (config.height - padding * 2) / (spots - 1)
     let posAct = padding
     for (let i = 0; i < spots; i++) {
       spotsArr.push(posAct + i * nodeGap)
     }
     return spotsArr
   }
-
 }
 
-export function intersectionsGraph<A>(graph: Graph<A>) {
-  let intersections = 0
-  for (let depth = graph.getDepth(); depth > 0; depth--) {
-    const nodes = graph.getNodesAtDepth(depth)
-    const chekedNodes: Node<A>[] = []
-    nodes.forEach((node) => {
-      node.inEdges.forEach((srcNode) => {
-        const edgeLength = depth - srcNode.depth!
-        const edge: Edge<A> = { srcNode, destNode: node }
-        for (let i = 0; i < edgeLength; i++) {
-          let compareNodes = graph.getNodesAtDepth(depth - i)
-          if (i === 0) {
-            compareNodes = compareNodes.filter((compareNode) => !chekedNodes.includes(compareNode))
-          }
-          compareNodes.forEach((compareNode) => {
-            if (compareNode.key !== node.key) {
-              compareNode.inEdges.forEach((compareSrcNode) => {
-                const compareEdge: Edge<A> = { srcNode: compareSrcNode, destNode: compareNode }
-                intersections += checkIntersection(edge, compareEdge) ? 1 : 0
-              })
-            }
-          })
-        }
-      })
-      chekedNodes.push(node)
-    })
+export function getPositionsX<A>(config: ConfigIntern<A>, graph: Graph<A>) {
+  const distanceBetweenNodes = (config.width - 2 * config.paddingGraph) / graph.getDepth()
+  const positions = []
+
+  for (let i = 0; i <= graph.getDepth(); i++) {
+    positions.push(config.paddingGraph + i * distanceBetweenNodes)
   }
-  return intersections
+  return positions
 }
 
 function edgeLength<A>(nodes: Node<A>[]) {
   let length = 0
   nodes.forEach((node) => {
-    node.edges.forEach((destNode) => {
-      length += Math.abs(node.posY - destNode.posY)
+    node.edges.forEach((edge) => {
+      length += Math.abs(node.posY - edge.destNode.posY)
     })
   })
   return length
@@ -176,7 +163,11 @@ function edgeLength<A>(nodes: Node<A>[]) {
 
 function intersectionCountOutEdges<A>(nodes: Node<A>[]) {
   let count = 0
-  const edges = getEdges(nodes)
+  let edges: Edge<A>[] = []
+
+  nodes.forEach((node) => {
+    edges = [...edges, ...node.edges]
+  })
   const edgesToCompare = [...edges]
 
   // compare all edges with each other to check for intersection
@@ -193,22 +184,12 @@ function intersectionCountOutEdges<A>(nodes: Node<A>[]) {
   return count
 }
 
-function getEdges<A>(nodes: Node<A>[]) {
-  const edges: Edge<A>[] = []
-  nodes.forEach((node) => {
-    node.edges.forEach((destNode) => {
-      edges.push({ srcNode: node, destNode: destNode })
-    })
-  })
-  return edges
-}
-
-function optimalPositionY<A>(srcNodes: Node<A>[], canvasHeigth: number) {
+function optimalPositionY<A>(edges: Edge<A>[], canvasHeigth: number) {
   let minimalDistance = Infinity
   let optimalPosition = 0
   for (let y = 0; y < canvasHeigth; y++) {
-    const distance = srcNodes.reduce((distance, srcNode) => {
-      return Math.floor(distance + Math.pow(srcNode.posY - y, 2))
+    const distance = edges.reduce((distance, edge) => {
+      return Math.floor(distance + Math.pow(edge.srcNode.posY - y, 2))
     }, 0)
     if (distance < minimalDistance) {
       minimalDistance = distance
@@ -236,7 +217,7 @@ export function spreadAllongY<A>(nodes: Node<A>[], canvasHeight: number) {
  */
 export function groupNodes<A>(nodes: Node<A>[], canvasHeight: number) {
   nodes.forEach((node) => {
-    node.optimalPosY = optimalPositionY(node.inEdges, canvasHeight)
+    node.optimalPosY = optimalPositionY(node.edges, canvasHeight)
   })
   nodes.sort((nodeA, nodeB) => nodeA.optimalPosY - nodeB.optimalPosY)
 

@@ -5,4 +5,9 @@ export default class Vec {
     this.x = x
     this.y = y
   }
+
+  add(v: Vec) {
+    this.x += v.x
+    this.y += v.y
+  }
 }

@@ -1,23 +1,44 @@
+import Position from "../Vec.js"
+import Edge from "./Edge.js"
+
 export default class Node<A> {
   key: string
-  posX: number
-  posY: number
   depth: number
+  position: Position
   optimalPosY: number
-  edges: Node<A>[]
-  inEdges: Node<A>[]
   attributes: A | null
+  clicked: boolean
+  mouseOver: boolean
   dummy: boolean
-  constructor(key: string, edges: Node<A>[], inEdges: Node<A>[], attributes: A | null) {
+  edges: Edge<A>[]
+  inEdges: Edge<A>[]
+  constructor(key: string, attributes: A | null) {
     this.key = key
-    this.posX = 0
-    this.posY = 0
     this.depth = 0
+    this.position = new Position(0, 0)
     this.optimalPosY = 0
-    this.edges = edges
-    this.inEdges = inEdges
     this.attributes = attributes
+    this.clicked = false
+    this.mouseOver = false
     this.dummy = false
+    this.edges = []
+    this.inEdges = []
+  }
+
+  get posX() {
+    return this.position.x
+  }
+
+  set posX(x) {
+    this.position.x = Math.floor(x)
+  }
+
+  get posY() {
+    return this.position.y
+  }
+
+  set posY(y) {
+    this.position.y = Math.floor(y)
   }
 
   equalValues(node: Node<A>) {
@@ -48,8 +69,8 @@ export default class Node<A> {
     if (this.key !== node.key) return false
     if (this.edges.length !== node.edges.length) return false
 
-    for (let i = 0; i < this.edges.length; i++) {
-      if (this.edges[i] !== node.edges[i]) {
+    for (const edgeA of this.edges) {
+      if (!node.edges.find((edge) => edge.destNode.key === edgeA.destNode.key)) {
         return false
       }
     }

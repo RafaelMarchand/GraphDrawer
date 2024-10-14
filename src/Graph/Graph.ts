@@ -1,72 +1,74 @@
+import Edge, { State } from "./Edge"
 import Node from "./Node"
 
-const STARTING_DEPTH = 0
-
 export default class Graph<A = null> {
-  nodes: Node<A>[]
+  nodes: Map<string, Node<A>>
   rootNodeKeys: string[]
   isDepthSet: Boolean
 
-  constructor(nodes: Node<A>[] = [], rootNodeKeys: string[] = []) {
-    this.nodes = nodes
+  constructor() {
+    this.nodes = new Map()
+    this.rootNodeKeys = []
+    this.isDepthSet = false
+  }
+
+  addNode(key: string, attributes: A | null) {
+    const node = new Node(key, attributes)
+    this.nodes.set(key, node)
+    return node
+  }
+
+  addEdge(srcNodeKey: string, destNodeKey: string, sharedState?: State) {
+    const srcNode = this.nodes.get(srcNodeKey)
+    const destNode = this.nodes.get(destNodeKey)
+
+    if (srcNode && destNode) {
+      const edge = new Edge(srcNode, destNode, sharedState)
+      srcNode.edges.push(edge)
+      destNode.inEdges.push(edge)
+    } else {
+      console.error("Can not add edge, source or destination Node doesnt exist")
+    }
+  }
+
+  initialize(rootNodeKeys: string[]) {
     this.rootNodeKeys = rootNodeKeys
-    this.isDepthSet = true
     this.setDepthNodes()
     this.createDummyNodes()
+    console.log(this)
   }
 
   createDummyNodes() {
-    this.nodes.forEach(node => {
-      node.edges.forEach(destNode => {
+    this.nodes.forEach((node) => {
+      node.edges.forEach(({ destNode }) => {
         const edgeLength = destNode.depth - node.depth
         const dummyNodes: Node<A>[] = []
-        for (let i = 1; i < edgeLength; i++){
-          let srcNodeDummy = dummyNodes.length > 0 ? dummyNodes[dummyNodes.length - 1] : node
+        const sharedEdgeState = { clicked: false, mouseOver: false }
 
-          dummyNodes.push(
-            new Node<A>(
-              `${node.key}_dummy_${i}`,
-              [],
-              [srcNodeDummy],
-              null
-            ))
+        for (let i = 1; i < edgeLength; i++) {
+          dummyNodes.push(this.addNode(`src_${node.key}_dest${destNode.key}_nr${i}`, null))
         }
+
         dummyNodes.forEach((dummy, index) => {
           dummy.dummy = true
-          if (index === 0)  node.edges.push(dummy)
-          if (index === dummyNodes.length - 1){
-            dummy.edges.push(destNode)
+          if (index === 0) {
+            this.addEdge(node.key, dummy.key, sharedEdgeState)
+          }
+          if (index === dummyNodes.length - 1) {
+            this.addEdge(dummy.key, destNode.key, sharedEdgeState)
           } else {
-            dummy.edges.push(dummyNodes[index + 1])
+            this.addEdge(dummy.key, dummyNodes[index + 1].key, sharedEdgeState)
           }
           dummy.depth = node.depth + index + 1
         })
         if (dummyNodes.length > 0) this.removeEdge(node, destNode)
-        this.nodes = [...this.nodes, ...dummyNodes]
       })
-    }) 
-  }
-
-  removeEdge(node: Node<A>, destNode: Node<A>){
-    node.edges = node.edges.filter(edgeNode => edgeNode.key !== destNode.key)
-    destNode.inEdges = destNode.inEdges.filter(edgeNode => edgeNode.key !== node.key)
-  }
-
-  addRootNode(node: Node<A>) {
-    node.depth = 0
-    this.nodes.push(node)
-    this.rootNodeKeys.push(node.key)
-  }
-
-  addNode(node: Node<A>) {
-    this.nodes.push(node)
-    node.edges.forEach((edgeNode) => {
-      edgeNode.inEdges.push(node)
     })
-    node.inEdges.forEach((edgeNode) => {
-      edgeNode.edges.push(node)
-    })
-    this.isDepthSet = false
+  }
+
+  removeEdge(srcNode: Node<A>, destNode: Node<A>) {
+    srcNode.edges = srcNode.edges.filter((edge) => edge.destNode.key !== destNode.key)
+    destNode.inEdges = destNode.inEdges.filter((edge) => edge.srcNode.key !== srcNode.key)
   }
 
   getDepth() {
@@ -83,10 +85,11 @@ export default class Graph<A = null> {
   }
 
   equalValues(graph: Graph<A>) {
-    if (this.nodes.length !== graph.nodes.length) return false
+    if (this.nodes.size !== graph.nodes.size) return false
 
-    for (let i = 0; i < this.nodes.length; i++) {
-      if (!this.nodes[i].equalValues(graph.nodes[i])) {
+    for (const [key, node] of this.nodes) {
+      const compareNode = graph.nodes.get(key)
+      if (compareNode && !node.equalValues(compareNode)) {
         return false
       }
     }
@@ -95,27 +98,33 @@ export default class Graph<A = null> {
 
   equalStructure(graph: Graph<A>) {
     if (this.rootNodeKeys.length !== graph.rootNodeKeys.length) return false
-    this.rootNodeKeys.forEach((rootNodeKey) => {
+
+    for (const rootNodeKey in this.rootNodeKeys) {
       if (!graph.rootNodeKeys.includes(rootNodeKey)) {
         return false
       }
-    })
+    }
 
-    if (this.nodes.length !== graph.nodes.length) return false
+    if (this.nodes.size !== graph.nodes.size) return false
 
-    for (let i = 0; i < this.nodes.length; i++) {
-      if (!this.nodes[i].equalStructure(graph.nodes[i])) {
+    for (const [key, node] of this.nodes) {
+      const compareNode = graph.nodes.get(key)
+      if (compareNode && !node.equalStructure(compareNode)) {
         return false
       }
     }
     return true
   }
 
-  getNodesAtDepth(depth: number): Node<A>[] {
+  getNodesAtDepth(depth: number) {
     if (!this.isDepthSet) {
       this.setDepthNodes()
     }
-    return this.nodes.filter((node) => node.depth === depth)
+    const nodes: Node<A>[] = []
+    this.nodes.forEach((node) => {
+      if (node.depth === depth) nodes.push(node)
+    })
+    return nodes
   }
 
   getRootNodes(): Node<A>[] {
@@ -129,6 +138,7 @@ export default class Graph<A = null> {
   }
 
   setDepthNodes() {
+    const STARTING_DEPTH = 0
     this.getRootNodes().forEach((node) => {
       this.setDepthNode(node, STARTING_DEPTH)
     })
@@ -140,7 +150,7 @@ export default class Graph<A = null> {
     if (node.depth < depth) {
       node.depth = depth
     }
-    node.edges.forEach((destNode) => {
+    node.edges.forEach(({ destNode }) => {
       this.setDepthNode(destNode, nextDepth)
     })
   }

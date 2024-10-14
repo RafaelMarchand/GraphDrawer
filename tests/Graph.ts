@@ -36,7 +36,5 @@ export const graphMethods: GraphMethods<Graph, NodeAttributes> = {
   getNodeKeys: (graph) => graph.mapNodes((key) => key),
   getDestNodeKeys: (graph, nodeKey) =>
     graph.mapOutEdges(nodeKey, (_edge, _attributes, _source, target) => target),
-  getSrcNodeKeys: (graph, nodeKey) =>
-    graph.mapInEdges(nodeKey, (_edge, _attributes, _source, target) => target),
   getNodeAttribute: (graph, nodeKey) => graph.getNodeAttribute(nodeKey, "value")
 }

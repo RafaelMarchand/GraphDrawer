@@ -1,56 +1,106 @@
 import Graph from "./Graph/Graph"
 import Node from "./Graph/Node"
-import Position from "./Vec"
-import { Config } from "./main"
+import { ConfigIntern } from "./main"
 import { getValue } from "./utils"
 
-type Context = CanvasRenderingContext2D
-
-const CONTROLPOINT = 0.7
-
-export function draw<A>(graph: Graph<A>, canvas: HTMLCanvasElement, config: Config<A>) {
-  const context = canvas.getContext("2d")!
-
-  drawBackground(context, config)
+export function draw<A>(graph: Graph<A>, context: CanvasRenderingContext2D, config: ConfigIntern<A>) {
+  drawBackground()
   graph.nodes.forEach((node) => {
     drawEdges(node)
+  })
+  graph.nodes.forEach((node) => {
     drawNode(node)
   })
 
-  function drawBackground(context: Context, config: Config<A>) {
+  function drawBackground() {
     context.fillStyle = config.backgroundColor
-    context.fillRect(0, 0, canvas.width, canvas.height)
+    context.fillRect(0, 0, config.width, config.height)
   }
   function drawNode(node: Node<A>) {
     if (node.dummy) return
-    context.strokeStyle = getValue(config.nodeBorderColor, node.attributes)
-    context.lineWidth = getValue(config.nodeBorderWidth, node.attributes)
+    context.strokeStyle = getValue(config.nodeBorderColor, node.key, node.attributes, node.clicked, node.mouseOver)
+    context.lineWidth = getValue(config.nodeBorderWidth, node.key, node.attributes, node.clicked, node.mouseOver)
     context.beginPath()
-    context.arc(node.posX, node.posY, getValue(config.nodeRadius, node.attributes), 0, 2 * Math.PI)
+    context.arc(node.posX, node.posY, getValue(config.nodeRadius, node.key, node.attributes, node.clicked, node.mouseOver), 0, 2 * Math.PI)
     context.stroke()
-    context.fillStyle = getValue(config.nodeColor, node.attributes)
+    context.fillStyle = getValue(config.nodeColor, node.key, node.attributes, node.clicked, node.mouseOver)
     context.fill()
 
-    context.fillStyle = "white"
-    context.font = "15px serif"
-    context.fillText(node.key, node.posX + 10, node.posY - 15)
-    context.font = "10px serif"
-    //context.fillText(String(node.depth!), node.posX - 10, node.posY - 15)
+    if (config.nodeHasText) {
+      context.fillStyle = config.nodeFontColor
+      context.font = config.nodeFont
+      const text = getValue(config.nodeText, node.key, node.attributes, node.clicked, node.mouseOver)
+      context.fillText(text, node.posX + config.nodeTextOffset.x, node.posY + config.nodeTextOffset.y)
+      context.font = `${config.nodeFontSize}px ${config.nodeFont}`
+    }
   }
 
   function drawEdges(node: Node<A>) {
-    node.edges.forEach((destNode: Node<A>) => {
-      let xGap = destNode.posX - node.posX
-      let p1 = new Position(Math.floor(xGap * CONTROLPOINT + node.posX), node.posY)
-      let p2 = new Position(Math.floor(destNode.posX - xGap * CONTROLPOINT), destNode.posY)
-
-      context.lineWidth = getValue(config.edgeWidth, node.attributes, destNode.attributes)
-      context.strokeStyle = getValue(config.edgeColor, node.attributes, destNode.attributes)
-
+    node.edges.forEach((edge) => {
+      context.lineWidth = getValue(config.edgeWidth, node.key, edge.destNode.key, node.attributes, edge.destNode.attributes, edge.state.clicked, edge.state.mouseOver)
+      context.strokeStyle = getValue(config.edgeColor, node.key, edge.destNode.key, node.attributes, edge.destNode.attributes, edge.state.clicked, edge.state.mouseOver)
+      const bezierCurve = new Path2D()
+      bezierCurve.moveTo(node.posX, node.posY)
+      bezierCurve.bezierCurveTo(
+        edge.bezierPoints!.cp1.x,
+        edge.bezierPoints!.cp1.y,
+        edge.bezierPoints!.cp2.x,
+        edge.bezierPoints!.cp2.y,
+        edge.destNode.posX,
+        edge.destNode.posY
+      )
       context.beginPath()
-      context.moveTo(node.posX, node.posY)
-      context.bezierCurveTo(p1.x, p1.y, p2.x, p2.y, destNode.posX, destNode.posY)
-      context.stroke()
+      context.stroke(bezierCurve)
     })
   }
+
+  //************************************************************
+  // Drawing edges on buffer might be helpfull in future
+  //************************************************************
+
+  // function drawEdges1(node: Node<A>) {
+  //   node.edges.forEach((destNode: Node<A>) => {
+  //     const lineWidth = getValue(config.edgeWidth, node.attributes, destNode.attributes)
+  //     const buffer = document.createElement("canvas")
+  //     const bufferContext = buffer.getContext("2d")!
+
+  //     buffer.width = destNode.posX - node.posX
+  //     buffer.height = Math.abs(node.posY - destNode.posY) + lineWidth
+  //     const edgDirection = node.posY - destNode.posY // positve -> curve goes up, negative -> curve goes down
+
+  //     const nodeY = edgDirection > 0 ? buffer.height - lineWidth / 2 : lineWidth / 2
+  //     const destNodeY = edgDirection > 0 ? lineWidth / 2 : buffer.height - lineWidth / 2
+
+  //     let p1 = new Position(Math.floor(buffer.width * CONTROLPOINT), nodeY)
+  //     let p2 = new Position(Math.floor(buffer.width - buffer.width * CONTROLPOINT), destNodeY)
+
+  //     // bufferContext.lineWidth = 1
+  //     // bufferContext.strokeStyle = "green"
+
+  //     // bufferContext.beginPath()
+  //     // bufferContext.rect(0, 0, buffer.width, buffer.height)
+  //     // bufferContext.stroke()
+
+  //     bufferContext.lineWidth = lineWidth
+  //     bufferContext.strokeStyle = getValue(config.edgeColor, node.attributes, destNode.attributes)
+
+  //     bufferContext.beginPath()
+  //     bufferContext.moveTo(0, nodeY)
+  //     bufferContext.bezierCurveTo(p1.x, p1.y, p2.x, p2.y, buffer.width, destNodeY)
+  //     bufferContext.stroke()
+
+  //     const bufferY = edgDirection > 0 ? node.posY - buffer.height + lineWidth / 2 : node.posY - lineWidth / 2
+  //     context.drawImage(buffer, node.posX, bufferY)
+
+  //     // bufferContext.getImageData(0, 0, config.width, config.heigth).data.forEach((pixel, index) => {
+  //     //   if (pixel !== 0) {
+  //     //     const x = index % buffer.width
+  //     //     const y = Math.floor(index / buffer.width)
+  //     //     node.pixels.push(new Position(x, y))
+  //     //   }
+  //     // })
+
+  //     //console.log(node.key, node.posY, destNode.key)
+  //   })
+  // }
 }
