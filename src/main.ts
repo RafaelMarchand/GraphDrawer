@@ -1,0 +1,191 @@
+import Edge from "./Graph/Edge.js"
+import Graph from "./Graph/Graph.js"
+import Node from "./Graph/Node.js"
+import Position from "./Vec.js"
+import { draw } from "./draw.js"
+import { getPositionsX, setPositions } from "./positioning.js"
+import { GraphMethods, convert, getConfig, getValue } from "./utils.js"
+
+export type ConfigIntern<A> = {
+  width: number
+  height: number
+  paddingGraph: number
+  nodeClick: (key: string, position: Position, event: MouseEvent, draw: () => void) => void
+  nodeHover: (key: string | null, position: Position | null, event: MouseEvent, draw: () => void) => void
+  edgeClick: (srcNodeKey: string, destNodeKey: string, event: MouseEvent, draw: () => void) => void
+  edgeHover: (srcNodeKey: string | null, destNodeKey: string | null, event: MouseEvent, draw: () => void) => void
+  nodeEventThreshold: number
+  edgeEventThreshold: number
+  backgroundColor: string
+  nodeRadius: ((key: string, attribute: A, clicked: boolean, mouseOver: boolean) => number) | number
+  nodeBorderWidth: ((key: string, attribute: A, clicked: boolean, mouseOver: boolean) => number) | number
+  nodeBorderColor: ((key: string, attribute: A, clicked: boolean, mouseOver: boolean) => string) | string
+  nodeColor: ((key: string, attribute: A, clicked: boolean, mouseOver: boolean) => string) | string
+  nodeHasText: boolean
+  nodeTextOffset: Position
+  nodeFontColor: string
+  nodeFontSize: number
+  nodeFont: string
+  nodeText: ((key: string, attribute: A, clicked: boolean, mouseOver: boolean) => string) | string
+  edgeWidth: ((srcNodeKey: string, destNodeKey: string, srcAttribute: A, destNodeAttribute: A, clicked: boolean, mouseOver: boolean) => number) | number
+  edgeColor: ((srcNodeKey: string, destNodeKey: string, srcAttribute: A, destNodeAttribute: A, clicked: boolean, mouseOver: boolean) => string) | string
+  styleCanvas: Partial<CSSStyleDeclaration>
+}
+
+export type Config<A> = Partial<ConfigIntern<A>>
+
+export default class GraphDrawer<G, A> {
+  graphMethods: GraphMethods<G, A>
+  config: ConfigIntern<A>
+  graph: Graph<A>
+  canvas: HTMLCanvasElement
+  context: CanvasRenderingContext2D
+
+  constructor(graphMethods: GraphMethods<G, A>, container: HTMLElement, config: Partial<ConfigIntern<A>>) {
+    this.graphMethods = graphMethods
+    this.config = getConfig<A>(config)
+    this.graph = new Graph<A>()
+    this.canvas = this.createCanvas(container)
+    this.context = this.canvas.getContext("2d")!
+    this.setupMouseClickListener()
+    this.setupMouseMoveListener()
+  }
+
+  createCanvas(container: HTMLElement): HTMLCanvasElement {
+    const canvas = document.createElement("canvas")
+    canvas.width = this.config.width
+    canvas.height = this.config.height
+    Object.assign(canvas.style, this.config.styleCanvas)
+    while (container.firstElementChild) {
+      container.firstElementChild.remove()
+    }
+    container.append(canvas)
+    return canvas
+  }
+
+  setupMouseMoveListener() {
+    let hoverCallbackFiredNode = false
+    let hoverCallbackFiredEdge = false
+    let lastEdge: Edge<A> | null = null
+    this.canvas.addEventListener("mousemove", (event) => {
+      const mousePos = new Position(event.offsetX, event.offsetY)
+      const node = this.nodeAtPosition(mousePos)
+      const edge = this.edgeAtPosition(mousePos)
+      if (node && !hoverCallbackFiredNode) {
+        hoverCallbackFiredNode = true
+        node.mouseOver = true
+        this.config.nodeHover(node.key, node.position, event, draw.bind(null, this.graph, this.context, this.config as any))
+      }
+      if (!node && hoverCallbackFiredNode) {
+        hoverCallbackFiredNode = false
+        this.graph.nodes.forEach((node) => (node.mouseOver = false))
+        this.config.nodeHover(null, null, event, draw.bind(null, this.graph, this.context, this.config as any))
+      }
+      if (!node && edge && !hoverCallbackFiredEdge) {
+        lastEdge = edge
+        hoverCallbackFiredEdge = true
+        edge.state.mouseOver = !edge.state.mouseOver
+        this.config.edgeHover(edge.srcNode.key, edge.destNode.key, event, draw.bind(null, this.graph, this.context, this.config as any))
+      }
+      if (!edge && hoverCallbackFiredEdge && lastEdge) {
+        hoverCallbackFiredEdge = false
+        lastEdge.state.mouseOver = false
+        this.config.edgeHover(null, null, event, draw.bind(null, this.graph, this.context, this.config as any))
+      }
+    })
+  }
+
+  setupMouseClickListener() {
+    this.canvas.addEventListener("mouseup", (event) => {
+      const mousePos = new Position(event.offsetX, event.offsetY)
+      const node = this.nodeAtPosition(mousePos)
+      const edge = this.edgeAtPosition(mousePos)
+      if (node) {
+        node.clicked = !node.clicked
+        this.config.nodeClick(node.key, node.position, event, draw.bind(null, this.graph, this.context, this.config as any))
+      }
+      if (edge && !node) {
+        edge.state.clicked = !edge.state.clicked
+        this.config.edgeClick(edge.srcNode.key, edge.destNode.key, event, draw.bind(null, this.graph, this.context, this.config as any))
+      }
+    })
+  }
+
+  distance(p1: Position, p2: Position) {
+    return Math.sqrt((p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2)
+  }
+
+  cubicBezier(t: number, P0: Position, P1: Position, P2: Position, P3: Position) {
+    const x = (1 - t) ** 3 * P0.x + 3 * (1 - t) ** 2 * t * P1.x + 3 * (1 - t) * t ** 2 * P2.x + t ** 3 * P3.x
+
+    const y = (1 - t) ** 3 * P0.y + 3 * (1 - t) ** 2 * t * P1.y + 3 * (1 - t) * t ** 2 * P2.y + t ** 3 * P3.y
+
+    return new Position(x, y)
+  }
+
+  edgeAtPosition(pos: Position) {
+    const positions = getPositionsX(this.config, this.graph)
+    let xLess = 0
+    let depth = Infinity
+
+    for (let i = 0; i < positions.length; i++) {
+      if (pos.x > positions[i] && xLess < positions[i]) {
+        xLess = positions[i]
+        depth = i
+      }
+    }
+
+    if (depth >= this.graph.getDepth()) return null
+
+    for (const node of this.graph.getNodesAtDepth(depth)) {
+      for (const edge of node.edges) {
+        let isNearCurve = false
+
+        for (let t = 0; t <= 1; t += 0.02) {
+          const pointOnCurve = this.cubicBezier(t, node.position, edge.bezierPoints.cp1, edge.bezierPoints.cp2, edge.destNode.position)
+          const dist = this.distance(pos, pointOnCurve)
+
+          if (dist < this.config.edgeEventThreshold) {
+            isNearCurve = true
+            //console.log(node.key, edge.destNode.key)
+            break
+          }
+        }
+        if (isNearCurve) {
+          return edge
+        }
+      }
+    }
+    return null
+  }
+
+  nodeAtPosition(pos: Position): Node<A> | null {
+    for (const [_key, node] of this.graph.nodes) {
+      if (node.dummy) continue
+      const dist = this.distance(pos, node.position)
+      const nodeRadius = getValue(this.config.nodeRadius, node.key, node.attributes, node.clicked, node.mouseOver)
+
+      if (dist < this.config.nodeEventThreshold + nodeRadius) {
+        return node
+      }
+    }
+    return null
+  }
+
+  update(inputGraph: G, rootNodes: string[]) {
+    const graph = convert<G, A>(inputGraph, rootNodes, this.graphMethods)
+
+    const equalStructure = this.graph.equalStructure(graph)
+    const equalValues = this.graph.equalValues(graph)
+
+    this.graph = graph
+
+    if (!equalStructure) {
+      setPositions(this.graph, this.config, this.canvas)
+    }
+
+    if (!equalStructure || !equalValues) {
+      draw<A>(this.graph, this.context, this.config)
+    }
+  }
+}
