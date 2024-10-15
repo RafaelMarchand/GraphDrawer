@@ -1,6 +1,6 @@
-# GraphDrawer.js
+# GraphDrawer
 
-GraphDrawer.js is a Library that draws Graphs on a canvas and allows for mouse interactions.
+GraphDrawer is a Library that draws Graphs on a canvas and allows for mouse interactions.
 
 ## Installation
 
