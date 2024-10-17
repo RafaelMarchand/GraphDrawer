@@ -1,7 +1,7 @@
 import Edge, { State } from "./Edge"
 import Node, { DummyValues } from "./Node"
 
-export default class Graph<A = null> {
+export default class Graph<A> {
   nodes: Map<string, Node<A>>
   rootNodeKeys: string[]
   isDepthSet: Boolean
@@ -12,7 +12,7 @@ export default class Graph<A = null> {
     this.isDepthSet = false
   }
 
-  addNode(key: string, attributes: A | null, dummyValues?: DummyValues<A>) {
+  addNode(key: string, attributes?: A, dummyValues?: DummyValues<A>) {
     const node = new Node(key, attributes, dummyValues)
     this.nodes.set(key, node)
     return node
@@ -51,7 +51,7 @@ export default class Graph<A = null> {
         }
 
         for (let i = 1; i < edgeLength; i++) {
-          dummyNodes.push(this.addNode(`src_${node.key}_dest${destNode.key}_nr${i}`, null, dummyValues))
+          dummyNodes.push(this.addNode(`src_${node.key}_dest${destNode.key}_nr${i}`, undefined, dummyValues))
         }
 
         dummyNodes.forEach((dummy, index) => {
@@ -131,31 +131,29 @@ export default class Graph<A = null> {
     return nodes
   }
 
-  getRootNodes(): Node<A>[] {
+  setDepthNodes() {
+    function setDepthNode(node: Node<A>, depth: number) {
+      const nextDepth = depth + 1
+      if (node.depth < depth) {
+        node.depth = depth
+      }
+      node.edges.forEach(({ destNode }) => {
+        setDepthNode(destNode, nextDepth)
+      })
+    }
+
+    const STARTING_DEPTH = 0
     const rootNodes: Node<A>[] = []
+
     this.nodes.forEach((node: Node<A>) => {
       if (this.rootNodeKeys.includes(node.key)) {
         rootNodes.push(node)
       }
     })
-    return rootNodes
-  }
 
-  setDepthNodes() {
-    const STARTING_DEPTH = 0
-    this.getRootNodes().forEach((node) => {
-      this.setDepthNode(node, STARTING_DEPTH)
+    rootNodes.forEach((node) => {
+      setDepthNode(node, STARTING_DEPTH)
     })
     this.isDepthSet = true
-  }
-
-  setDepthNode(node: Node<A>, depth: number) {
-    const nextDepth = depth + 1
-    if (node.depth < depth) {
-      node.depth = depth
-    }
-    node.edges.forEach(({ destNode }) => {
-      this.setDepthNode(destNode, nextDepth)
-    })
   }
 }

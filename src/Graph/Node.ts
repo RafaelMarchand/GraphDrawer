@@ -3,9 +3,9 @@ import Edge from "./Edge.js"
 
 export type DummyValues<A> = {
   srcNodeKey: string
-  srcNodeAttributes: A | null
+  srcNodeAttributes: A | undefined
   destNodeKey: string
-  destNodeAttributes: A | null
+  destNodeAttributes: A | undefined
 }
 
 export default class Node<A> {
@@ -13,13 +13,13 @@ export default class Node<A> {
   depth: number
   position: Position
   optimalPosY: number
-  attributes: A | null
+  attributes: A | undefined
   clicked: boolean
   mouseOver: boolean
-  dummyValues: DummyValues<A> | undefined
+  dummyValues?: DummyValues<A>
   edges: Edge<A>[]
   inEdges: Edge<A>[]
-  constructor(key: string, attributes: A | null, dummyValues?: DummyValues<A>) {
+  constructor(key: string, attributes?: A, dummyValues?: DummyValues<A>) {
     this.key = key
     this.depth = 0
     this.position = new Position(0, 0)

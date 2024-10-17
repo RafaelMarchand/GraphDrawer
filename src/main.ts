@@ -1,12 +1,19 @@
 import Edge from "./Graph/Edge.js"
 import Graph from "./Graph/Graph.js"
+import Drawer from "./Graph/Drawer.js"
 import Node from "./Graph/Node.js"
 import Position from "./Vec.js"
-import { draw } from "./draw.js"
-import { getPositionsX, setPositions } from "./positioning.js"
-import { GraphMethods, convert, getConfig, getValue } from "./utils.js"
+import { convert, getConfig, getValue } from "./utils.js"
+import Positioner, { getPositionsX } from "./Graph/Positioner.js"
+
+export type GraphMethods<G, A> = {
+  getNodeKeys: (graph: G) => string[]
+  getDestNodeKeys: (graph: G, nodeKey: string) => string[]
+  getNodeAttribute?: (graph: G, nodeKey: string) => A
+}
 
 export type ConfigIntern<A> = {
+  maxArrangements: number // defaults to infinity, lower values will increase performance but can also lead to less pleasing node arrangments
   width: number
   height: number
   paddingGraph: number
@@ -22,7 +29,7 @@ export type ConfigIntern<A> = {
   nodeBorderColor: ((key: string, attribute: A, clicked: boolean, mouseOver: boolean) => string) | string
   nodeColor: ((key: string, attribute: A, clicked: boolean, mouseOver: boolean) => string) | string
   nodeHasText: boolean
-  nodeTextOffset: Position
+  nodeTextOffset: { x: number; y: number }
   nodeFontColor: string
   nodeFontSize: number
   nodeFont: string
@@ -34,19 +41,21 @@ export type ConfigIntern<A> = {
 
 export type Config<A> = Partial<ConfigIntern<A>>
 
-export default class GraphDrawer<G, A> {
+export default class GraphDrawer<G, A = undefined> {
   graphMethods: GraphMethods<G, A>
   config: ConfigIntern<A>
   graph: Graph<A>
   canvas: HTMLCanvasElement
-  context: CanvasRenderingContext2D
+  drawer: Drawer<A>
+  positioner: Positioner<A>
 
   constructor(graphMethods: GraphMethods<G, A>, container: HTMLElement, config: Partial<ConfigIntern<A>>) {
     this.graphMethods = graphMethods
-    this.config = getConfig<A>(config)
-    this.graph = new Graph<A>()
+    this.config = getConfig(config)
+    this.graph = new Graph()
     this.canvas = this.createCanvas(container)
-    this.context = this.canvas.getContext("2d")!
+    this.drawer = new Drawer(this.config, this.canvas)
+    this.positioner = new Positioner(this.config, this.drawer)
     this.setupMouseClickListener()
     this.setupMouseMoveListener()
   }
@@ -64,9 +73,11 @@ export default class GraphDrawer<G, A> {
   }
 
   setupMouseMoveListener() {
+    const draw = this.drawer.draw.bind(this.drawer)
     let hoverCallbackFiredNode = false
     let hoverCallbackFiredEdge = false
     let lastEdge: Edge<A> | null = null
+
     this.canvas.addEventListener("mousemove", (event) => {
       const mousePos = new Position(event.offsetX, event.offsetY)
       const node = this.nodeAtPosition(mousePos)
@@ -74,39 +85,41 @@ export default class GraphDrawer<G, A> {
       if (node && !hoverCallbackFiredNode) {
         hoverCallbackFiredNode = true
         node.mouseOver = true
-        this.config.nodeHover(node.key, node.position, event, draw.bind(null, this.graph, this.context, this.config as any))
+        this.config.nodeHover(node.key, node.position, event, draw)
       }
       if (!node && hoverCallbackFiredNode) {
         hoverCallbackFiredNode = false
         this.graph.nodes.forEach((node) => (node.mouseOver = false))
-        this.config.nodeHover(null, null, event, draw.bind(null, this.graph, this.context, this.config as any))
+        this.config.nodeHover(null, null, event, draw)
       }
       if (!node && edge && !hoverCallbackFiredEdge) {
         lastEdge = edge
         hoverCallbackFiredEdge = true
         edge.state.mouseOver = !edge.state.mouseOver
-        this.config.edgeHover(edge.srcNode.key, edge.destNode.key, event, draw.bind(null, this.graph, this.context, this.config as any))
+        this.config.edgeHover(edge.srcNode.key, edge.destNode.key, event, draw)
       }
       if (!edge && hoverCallbackFiredEdge && lastEdge) {
         hoverCallbackFiredEdge = false
         lastEdge.state.mouseOver = false
-        this.config.edgeHover(null, null, event, draw.bind(null, this.graph, this.context, this.config as any))
+        this.config.edgeHover(null, null, event, draw)
       }
     })
   }
 
   setupMouseClickListener() {
+    const draw = this.drawer.draw.bind(this.drawer)
+
     this.canvas.addEventListener("mouseup", (event) => {
       const mousePos = new Position(event.offsetX, event.offsetY)
       const node = this.nodeAtPosition(mousePos)
       const edge = this.edgeAtPosition(mousePos)
       if (node) {
         node.clicked = !node.clicked
-        this.config.nodeClick(node.key, node.position, event, draw.bind(null, this.graph, this.context, this.config as any))
+        this.config.nodeClick(node.key, node.position, event, draw)
       }
       if (edge && !node) {
         edge.state.clicked = !edge.state.clicked
-        this.config.edgeClick(edge.srcNode.key, edge.destNode.key, event, draw.bind(null, this.graph, this.context, this.config as any))
+        this.config.edgeClick(edge.srcNode.key, edge.destNode.key, event, draw)
       }
     })
   }
@@ -124,7 +137,7 @@ export default class GraphDrawer<G, A> {
   }
 
   edgeAtPosition(pos: Position) {
-    const positions = getPositionsX(this.config, this.graph)
+    const positions = getPositionsX(this.graph.getDepth(), this.config)
     let xLess = 0
     let depth = Infinity
 
@@ -181,11 +194,12 @@ export default class GraphDrawer<G, A> {
     this.graph = graph
 
     if (!equalStructure) {
-      setPositions(this.graph, this.config, this.canvas)
+      this.positioner.setPositions(this.graph)
+      //setPositions(this.graph, this.config, this.canvas)
     }
 
     if (!equalStructure || !equalValues) {
-      draw<A>(this.graph, this.context, this.config)
+      this.drawer.draw(graph)
     }
   }
 }

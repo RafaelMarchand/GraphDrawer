@@ -1,6 +1,5 @@
 import Graphology from "graphology"
-import GraphDrawer, { Config } from "../../src/main"
-import { GraphMethods } from "../../src/utils"
+import GraphDrawer, { Config, GraphMethods } from "../../src/main"
 import Graph from "../../src/Graph/Graph"
 
 const graph = new Graphology({ type: "directed" })
@@ -69,7 +68,7 @@ const config: Config<Attributes> = {
     }
     return "white"
   },
-  edgeColor(srcNodeKey, destNodeKey, srcAttribute, destNodeAttribute, clicked, mouseOver) {
+  edgeColor: (srcNodeKey, destNodeKey, srcAttribute, destNodeAttribute, clicked, mouseOver) => {
     if (srcNodeKey === "3" && clicked) {
       return "violet"
     }
@@ -86,7 +85,7 @@ const config: Config<Attributes> = {
     draw()
   },
   nodeHover(key, position, event, draw) {
-    //console.log(key)
+    console.log(key)
     draw()
   },
   edgeHover(key, destNodeKey, event, draw) {
@@ -98,8 +97,7 @@ const config: Config<Attributes> = {
 }
 const graphMethods: GraphMethods<Graphology, Attributes> = {
   getNodeKeys: (graph) => graph.mapNodes((key) => key),
-  getDestNodeKeys: (graph, nodeKey) =>
-    graph.mapOutEdges(nodeKey, (_edge, _attributes, _source, target) => target),
+  getDestNodeKeys: (graph, nodeKey) => graph.mapOutEdges(nodeKey, (_edge, _attributes, _source, target) => target),
   getNodeAttribute: (graph, nodeKey) => graph.getNodeAttributes(nodeKey) as Attributes
 }
 
@@ -123,43 +121,62 @@ const methods: GraphMethods<Graph<string>, string> = {
 }
 
 const graph1 = new Graph<string>()
-graph1.addNode("1", "hi")
-graph1.addNode("2", "hi")
-graph1.addNode("3", "hi")
-graph1.addNode("4", "hi")
+graph1.addNode("0_1", "hi")
 
-graph1.addEdge("1", "2")
-graph1.addEdge("1", "3")
-graph1.addEdge("1", "4")
+graph1.addNode("1_1", "hi")
 
-const graph2 = new Graph<string>()
-graph2.addNode("1", "hi")
-graph2.addNode("2", "hi")
-graph2.addNode("3", "hi")
-graph2.addNode("4", "bye")
+graph1.addNode("2_1", "hi")
+graph1.addNode("2_2", "hi")
+graph1.addNode("2_3", "hi")
 
-graph2.addEdge("1", "2")
-graph2.addEdge("1", "3")
-graph2.addEdge("1", "4")
+graph1.addNode("3_1", "hi")
+graph1.addNode("3_2", "hi")
+graph1.addNode("3_3", "hi")
 
-const graph3 = new Graph<string>()
-graph3.addNode("1", "hi")
-graph3.addNode("2", "hi")
-graph3.addNode("3", "hi")
-graph3.addNode("4", "hi")
+graph1.addNode("4_1", "hi")
+graph1.addNode("4_2", "hi")
+graph1.addNode("4_3", "hi")
+graph1.addNode("4_4", "hi")
+graph1.addNode("4_5", "hi")
+graph1.addNode("4_6", "hi")
 
-graph3.addEdge("1", "2")
-graph3.addEdge("2", "3")
-graph3.addEdge("2", "4")
+graph1.addEdge("0_1", "1_1")
+
+graph1.addEdge("1_1", "2_1")
+graph1.addEdge("1_1", "2_2")
+graph1.addEdge("1_1", "2_3")
+
+graph1.addEdge("2_1", "3_1")
+graph1.addEdge("2_2", "3_2")
+graph1.addEdge("2_3", "3_3")
+
+graph1.addEdge("3_1", "4_1")
+graph1.addEdge("3_1", "4_2")
+graph1.addEdge("3_1", "4_3")
+
+graph1.addEdge("3_3", "4_4")
+graph1.addEdge("3_3", "4_5")
+graph1.addEdge("3_3", "4_6")
+
+const config1: Config<string> = {
+  paddingGraph: 20,
+  edgeWidth: 5,
+  nodeTextOffset: { x: -10, y: -15 },
+  nodeRadius: (_key, _attributes, _clicked, mouseOver) => {
+    if (mouseOver) return 10
+    return 6
+  },
+  nodeHover: (_key, _position, _event, draw) => {
+    draw()
+  },
+  edgeHover: (_key, _position, _event, draw) => {
+    draw()
+  },
+  styleCanvas: {
+    borderRadius: "0.3rem"
+  }
+}
 
 const containerG1 = document.getElementById("Graph1")
-const containerG2 = document.getElementById("Graph2")
-const containerG3 = document.getElementById("Graph3")
-
-const graphDrawerG1 = new GraphDrawer<Graph<string>, string>(methods, containerG1!, {})
-const graphDrawerG2 = new GraphDrawer<Graph<string>, string>(methods, containerG2!, {})
-const graphDrawerG3 = new GraphDrawer<Graph<string>, string>(methods, containerG3!, {})
-
-graphDrawerG1.update(graph1, ["1"])
-graphDrawerG2.update(graph2, ["1"])
-graphDrawerG3.update(graph3, ["1"])
+const graphDrawerG1 = new GraphDrawer<Graph<string>, string>(methods, containerG1!, config1)
+graphDrawerG1.update(graph1, ["0_1"])
