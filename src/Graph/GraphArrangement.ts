@@ -3,23 +3,7 @@ import { ConfigIntern } from "../main"
 import Edge from "./Edge"
 import Graph from "./Graph"
 import Node from "./Node"
-import Position from "../Vec.js"
 import { permutator } from "../utils"
-
-function createGraph<A>(graph: Graph<A>) {
-  const newGraph = new Graph<A>()
-  graph.nodes.forEach((node) => {
-    const newNode = newGraph.addNode(node.key)
-    newNode.position = new Position(node.posX, node.posY)
-    newNode.depth = node.depth
-  })
-  graph.nodes.forEach((node) => {
-    node.edges.forEach((edge) => {
-      newGraph.addEdge(edge.srcNode.key, edge.destNode.key)
-    })
-  })
-  return newGraph
-}
 
 export default class GraphArrangement<A> {
   graph: Graph<A>
@@ -28,7 +12,7 @@ export default class GraphArrangement<A> {
   totalLengthEdges: number
 
   constructor(graph: Graph<A>, config: ConfigIntern<A>, arrangement?: GraphArrangement<A>) {
-    this.graph = createGraph(graph)
+    this.graph = Graph.clone(graph)
     this.config = config
     this.intersections = arrangement?.intersections ?? 0
     this.totalLengthEdges = arrangement?.totalLengthEdges ?? 0
@@ -176,9 +160,10 @@ export default class GraphArrangement<A> {
   optimalPositionY(node: Node<A>) {
     let minimalDistance = Infinity
     let optimalPosition = 0
-    for (let y = 0; y < this.config.height; y++) {
+    const stepSize = Math.floor(this.config.height / 10)
+    for (let y = 0; y < this.config.height; y += stepSize) {
       const distance = node.inEdges.reduce((distance, edge) => {
-        return Math.floor(distance + Math.pow(edge.srcNode.posY - y, 2))
+        return Math.floor(distance + Math.abs(edge.srcNode.posY - y))
       }, 0)
       if (distance < minimalDistance) {
         minimalDistance = distance

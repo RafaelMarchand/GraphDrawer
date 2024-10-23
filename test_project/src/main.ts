@@ -15,6 +15,7 @@ graph.addNode("7", { value: 3 })
 graph.addNode("8", { value: -1 })
 
 graph.addNode("9", { value: -1 })
+graph.addNode("10", { value: -1 })
 
 graph.addEdge("1", "2")
 graph.addEdge("1", "3")
@@ -32,10 +33,14 @@ graph.addEdge("7", "9")
 graph.addEdge("1", "9")
 graph.addEdge("1", "7")
 graph.addEdge("3", "9")
+//graph.addEdge("5", "9")
+graph.addEdge("5", "8")
+graph.addEdge("8", "10")
 
 const container = document.getElementById("app")
 
 const config: Config<Attributes> = {
+  maxArrangements: 100,
   edgeWidth: 5,
   nodeColor: (key, attributes, clicked, mouseOver) => {
     if (key === "3" && mouseOver) {
@@ -78,7 +83,8 @@ const config: Config<Attributes> = {
     return "white"
   },
   nodeClick(key, position, event, draw) {
-    // console.log(key, position, event)
+    console.log(key, position, event)
+    graphDrawer.update(graph, ["1"])
     draw()
   },
   edgeClick(key, destNodeKey, event, draw) {
@@ -180,3 +186,24 @@ const config1: Config<string> = {
 const containerG1 = document.getElementById("Graph1")
 const graphDrawerG1 = new GraphDrawer<Graph<string>, string>(methods, containerG1!, config1)
 graphDrawerG1.update(graph1, ["0_1"])
+
+const graph2 = new Graph<string>()
+graph2.addNode("0_1", "hi")
+
+graph2.addNode("1_1", "hi")
+graph2.addNode("1_2", "hi")
+
+graph2.addNode("2_1", "hi")
+graph2.addNode("2_2", "hi")
+
+graph2.addEdge("0_1", "1_1")
+graph2.addEdge("0_1", "1_2")
+
+graph2.addEdge("1_1", "2_1")
+graph2.addEdge("1_2", "2_2")
+graph2.addEdge("1_1", "2_2")
+graph2.addEdge("1_2", "2_1")
+
+const containerG2 = document.getElementById("Graph2")
+const graphDrawerG2 = new GraphDrawer<Graph<string>, string>(methods, containerG2!, config1)
+graphDrawerG2.update(graph2, ["0_1"])

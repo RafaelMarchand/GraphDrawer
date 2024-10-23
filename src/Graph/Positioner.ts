@@ -17,7 +17,6 @@ export default class Positioner<A> {
   }
 
   setPositions(graph: Graph<A>) {
-    //lower values will increase performance but also make it more likely to have intersections
     this.graph = graph
     this.setPositionX()
 
@@ -28,10 +27,11 @@ export default class Positioner<A> {
       if (this.arrangements.length > this.config.maxArrangements) {
         this.arrangements.length = this.config.maxArrangements
       }
-      // this.arrangements.forEach((arrangement) => {
-      //   console.log(arrangement)
-      //   this.drawer.draw(arrangement.graph)
-      // })
+      this.arrangements.forEach((arrangement) => {
+        console.log(arrangement)
+        this.drawer.draw(arrangement.graph)
+        //debugger
+      })
     }
     this.arrangements.sort((a, b) => {
       const difference = a.intersections - b.intersections
@@ -61,6 +61,7 @@ export default class Positioner<A> {
 
     for (const arrangement of this.arrangements) {
       const orders = arrangement.nodeOrders(depth)
+      console.log("Orders", orders)
       orders.forEach((order) => {
         const newArrangement = new GraphArrangement<A>(arrangement.graph, this.config, arrangement)
         newArrangement.setPositionYforNodeOrder(order.map((node) => node.key))

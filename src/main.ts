@@ -13,12 +13,13 @@ export type GraphMethods<G, A> = {
 }
 
 export type ConfigIntern<A> = {
-  maxArrangements: number // defaults to infinity, lower values will increase performance but can also lead to less pleasing node arrangments
+  maxArrangements: number // defaults to 100, lower values will increase performance but can also lead to less pleasing node arrangments
+  maxIntersections: number // This is the number of edge inersections the algorythm is aiming for, for big and complex graphs a low value might cause computational based crashes
   width: number
   height: number
   paddingGraph: number
-  nodeClick: (key: string, position: Position, event: MouseEvent, draw: () => void) => void
-  nodeHover: (key: string | null, position: Position | null, event: MouseEvent, draw: () => void) => void
+  nodeClick: (key: string, position: { x: number; y: number }, event: MouseEvent, draw: () => void) => void
+  nodeHover: (key: string | null, position: { x: number; y: number } | null, event: MouseEvent, draw: () => void) => void
   edgeClick: (srcNodeKey: string, destNodeKey: string, event: MouseEvent, draw: () => void) => void
   edgeHover: (srcNodeKey: string | null, destNodeKey: string | null, event: MouseEvent, draw: () => void) => void
   nodeEventThreshold: number
@@ -74,32 +75,32 @@ export default class GraphDrawer<G, A = undefined> {
 
   setupMouseMoveListener() {
     const draw = this.drawer.draw.bind(this.drawer)
-    let hoverCallbackFiredNode = false
-    let hoverCallbackFiredEdge = false
+    let nodeHoverCallbackFired = false
+    let edgeHoverCallbackFired = false
     let lastEdge: Edge<A> | null = null
 
     this.canvas.addEventListener("mousemove", (event) => {
       const mousePos = new Position(event.offsetX, event.offsetY)
       const node = this.nodeAtPosition(mousePos)
       const edge = this.edgeAtPosition(mousePos)
-      if (node && !hoverCallbackFiredNode) {
-        hoverCallbackFiredNode = true
+      if (node && !nodeHoverCallbackFired) {
+        nodeHoverCallbackFired = true
         node.mouseOver = true
         this.config.nodeHover(node.key, node.position, event, draw)
       }
-      if (!node && hoverCallbackFiredNode) {
-        hoverCallbackFiredNode = false
+      if (!node && nodeHoverCallbackFired) {
+        nodeHoverCallbackFired = false
         this.graph.nodes.forEach((node) => (node.mouseOver = false))
         this.config.nodeHover(null, null, event, draw)
       }
-      if (!node && edge && !hoverCallbackFiredEdge) {
+      if (!node && edge && !edgeHoverCallbackFired) {
         lastEdge = edge
-        hoverCallbackFiredEdge = true
+        edgeHoverCallbackFired = true
         edge.state.mouseOver = !edge.state.mouseOver
         this.config.edgeHover(edge.srcNode.key, edge.destNode.key, event, draw)
       }
-      if (!edge && hoverCallbackFiredEdge && lastEdge) {
-        hoverCallbackFiredEdge = false
+      if (!edge && edgeHoverCallbackFired && lastEdge) {
+        edgeHoverCallbackFired = false
         lastEdge.state.mouseOver = false
         this.config.edgeHover(null, null, event, draw)
       }
@@ -113,6 +114,7 @@ export default class GraphDrawer<G, A = undefined> {
       const mousePos = new Position(event.offsetX, event.offsetY)
       const node = this.nodeAtPosition(mousePos)
       const edge = this.edgeAtPosition(mousePos)
+
       if (node) {
         node.clicked = !node.clicked
         this.config.nodeClick(node.key, node.position, event, draw)
@@ -191,13 +193,10 @@ export default class GraphDrawer<G, A = undefined> {
     const equalStructure = this.graph.equalStructure(graph)
     const equalValues = this.graph.equalValues(graph)
 
-    this.graph = graph
-
     if (!equalStructure) {
+      this.graph = graph
       this.positioner.setPositions(this.graph)
-      //setPositions(this.graph, this.config, this.canvas)
     }
-
     if (!equalStructure || !equalValues) {
       this.drawer.draw(graph)
     }

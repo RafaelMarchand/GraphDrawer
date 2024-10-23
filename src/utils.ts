@@ -4,7 +4,7 @@ import Position from "./Vec.js"
 
 export function getConfig<A>(inputConfig: Partial<ConfigIntern<A>>) {
   const config: ConfigIntern<A> = {
-    maxArrangements: Infinity,
+    maxArrangements: 100,
     width: 400,
     height: 400,
     paddingGraph: 10,

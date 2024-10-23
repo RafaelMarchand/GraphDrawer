@@ -1,5 +1,6 @@
 import Edge, { State } from "./Edge"
 import Node, { DummyValues } from "./Node"
+import Position from "../Vec.js"
 
 export default class Graph<A> {
   nodes: Map<string, Node<A>>
@@ -103,7 +104,7 @@ export default class Graph<A> {
   equalStructure(graph: Graph<A>) {
     if (this.rootNodeKeys.length !== graph.rootNodeKeys.length) return false
 
-    for (const rootNodeKey in this.rootNodeKeys) {
+    for (const rootNodeKey of this.rootNodeKeys) {
       if (!graph.rootNodeKeys.includes(rootNodeKey)) {
         return false
       }
@@ -155,5 +156,20 @@ export default class Graph<A> {
       setDepthNode(node, STARTING_DEPTH)
     })
     this.isDepthSet = true
+  }
+
+  static clone<A, B>(graph: Graph<A>) {
+    const newGraph = new Graph<B>()
+    graph.nodes.forEach((node) => {
+      const newNode = newGraph.addNode(node.key)
+      newNode.position = new Position(node.posX, node.posY)
+      newNode.depth = node.depth
+    })
+    graph.nodes.forEach((node) => {
+      node.edges.forEach((edge) => {
+        newGraph.addEdge(edge.srcNode.key, edge.destNode.key)
+      })
+    })
+    return newGraph
   }
 }
