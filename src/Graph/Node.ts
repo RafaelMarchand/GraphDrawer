@@ -12,6 +12,7 @@ export default class Node<A> {
   key: string
   depth: number
   position: Position
+  orderNr: number
   optimalPosY: number
   attributes: A | undefined
   clicked: boolean
@@ -23,6 +24,7 @@ export default class Node<A> {
     this.key = key
     this.depth = 0
     this.position = new Position(0, 0)
+    this.orderNr = 0
     this.optimalPosY = 0
     this.attributes = attributes
     this.clicked = false

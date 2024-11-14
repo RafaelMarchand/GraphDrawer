@@ -198,7 +198,7 @@ export default class GraphDrawer<G, A = undefined> {
       this.positioner.setPositions(this.graph)
     }
     if (!equalStructure || !equalValues) {
-      this.drawer.draw(graph)
+      this.drawer.draw(this.graph)
     }
   }
 }

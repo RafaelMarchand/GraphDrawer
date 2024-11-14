@@ -158,12 +158,13 @@ export default class Graph<A> {
     this.isDepthSet = true
   }
 
-  static clone<A, B>(graph: Graph<A>) {
-    const newGraph = new Graph<B>()
+  static clone<A>(graph: Graph<A>) {
+    const newGraph = new Graph<A>()
     graph.nodes.forEach((node) => {
       const newNode = newGraph.addNode(node.key)
       newNode.position = new Position(node.posX, node.posY)
       newNode.depth = node.depth
+      newNode.orderNr = node.orderNr
     })
     graph.nodes.forEach((node) => {
       node.edges.forEach((edge) => {

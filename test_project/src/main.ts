@@ -50,7 +50,7 @@ const config: Config<Attributes> = {
       return "violet"
     }
 
-    if (attributes?.value === 5) {
+    if (clicked) {
       return "red"
     }
     return "blue"
@@ -207,3 +207,30 @@ graph2.addEdge("1_2", "2_1")
 const containerG2 = document.getElementById("Graph2")
 const graphDrawerG2 = new GraphDrawer<Graph<string>, string>(methods, containerG2!, config1)
 graphDrawerG2.update(graph2, ["0_1"])
+
+const graph3 = new Graph<string>()
+graph3.addNode("0_1", "hi")
+graph3.addNode("0_2", "hi")
+graph3.addNode("0_3", "hi")
+graph3.addNode("0_4", "hi")
+
+graph3.addNode("1_1", "hi")
+graph3.addNode("1_2", "hi")
+
+graph3.addNode("2_1", "hi")
+graph3.addNode("2_2", "hi")
+graph3.addNode("2_3", "hi")
+
+graph3.addEdge("0_1", "1_1")
+graph3.addEdge("0_1", "1_2")
+graph3.addEdge("0_2", "1_2")
+graph3.addEdge("0_3", "1_1")
+graph3.addEdge("0_4", "1_2")
+
+graph3.addEdge("1_1", "2_1")
+graph3.addEdge("1_1", "2_2")
+graph3.addEdge("1_2", "2_3")
+
+const containerG3 = document.getElementById("Graph3")
+const graphDrawerG3 = new GraphDrawer<Graph<string>, string>(methods, containerG3!, config1)
+graphDrawerG3.update(graph3, ["0_1", "0_2", "0_3", "0_4"])
