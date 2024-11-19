@@ -201,4 +201,11 @@ export default class GraphDrawer<G, A = undefined> {
       this.drawer.draw(this.graph)
     }
   }
+
+  forceDraw(inputGraph: G, rootNodes: string[]) {
+    const graph = convert<G, A>(inputGraph, rootNodes, this.graphMethods)
+    this.graph = graph
+    this.positioner.setPositions(this.graph)
+    this.drawer.draw(this.graph)
+  }
 }
