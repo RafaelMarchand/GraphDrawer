@@ -191,21 +191,12 @@ export default class GraphDrawer<G, A = undefined> {
     const graph = convert<G, A>(inputGraph, rootNodes, this.graphMethods)
 
     const equalStructure = this.graph.equalStructure(graph)
-    const equalValues = this.graph.equalValues(graph)
+    //const equalValues = this.graph.equalValues(graph)
 
     if (!equalStructure) {
       this.graph = graph
       this.positioner.setPositions(this.graph)
     }
-    if (!equalStructure || !equalValues) {
-      this.drawer.draw(this.graph)
-    }
-  }
-
-  forceDraw(inputGraph: G, rootNodes: string[]) {
-    const graph = convert<G, A>(inputGraph, rootNodes, this.graphMethods)
-    this.graph = graph
-    this.positioner.setPositions(this.graph)
     this.drawer.draw(this.graph)
   }
 }
