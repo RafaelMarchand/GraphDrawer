@@ -10,4 +10,4 @@ npm install graph-drawer
 
 ## Example Code
 
-Example code can be found in the <mark>Marked text </test_project> folder.
+Example code can be found in the <mark>test_project <mark/> folder.
