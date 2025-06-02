@@ -184,8 +184,8 @@ const config1: Config<string> = {
 };
 
 const containerG1 = document.getElementById("Graph1");
-const graphDrawerG1 = new GraphDrawer<Graph<string>, string>(methods, containerG1!, config1);
-graphDrawerG1.update(graph1, ["0_1"]);
+// const graphDrawerG1 = new GraphDrawer<Graph<string>, string>(methods, containerG1!, config1);
+// graphDrawerG1.update(graph1, ["0_1"]);
 
 const graph2 = new Graph<string>();
 graph2.addNode("0_1", "hi");

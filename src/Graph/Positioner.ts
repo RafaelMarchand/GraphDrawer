@@ -3,7 +3,7 @@ import Drawer from "./Drawer";
 import Graph from "./Graph";
 import Node from "./Node";
 import Edge from "./Edge";
-import { forEach, usolve } from "mathjs";
+import { usolve } from "mathjs";
 import NodeLayout from "./NodeLayout";
 
 export default class Positioner<A> {
@@ -65,7 +65,6 @@ export default class Positioner<A> {
         });
 
         for (let i = 1; i <= graph.getDepth(); i++) {
-            console.log("dept", i);
             const nodes = graph.getNodesAtDepth(i);
             nodes.sort((a, b) => a.orderNr - b.orderNr);
             nodes.forEach((node, index) => {
@@ -75,12 +74,10 @@ export default class Positioner<A> {
             this.setPositionYOfLayer(nodes, "inEdges", graph);
         }
         for (let i = graph.getDepth() - 1; i >= 0; i--) {
-            console.log("dept", i);
             const nodes = graph.getNodesAtDepth(i);
             this.setPositionYOfLayer(nodes, "edges", graph);
         }
         for (let i = 1; i <= graph.getDepth(); i++) {
-            console.log("dept", i);
             const nodes = graph.getNodesAtDepth(i);
             this.setPositionYOfLayer(nodes, "inEdges", graph);
         }
@@ -114,7 +111,6 @@ export default class Positioner<A> {
 
         prioritiesOrdered.forEach((priority) => {
             const group = priorityGroups[priority];
-            debugger;
             nodeLayout.feedNodes(group, this.drawer, graph);
         });
     }

@@ -38,6 +38,7 @@ export default class NodeLayout<A> {
     }
 
     private movingNodes(nodes: Node<A>[], draw: any, graph: any) {
+        debugger;
         nodes.forEach((node) => {
             node.optimalPosY = Math.round(node[this.edgeType].reduce((acc, edge) => edge[this.nodeType].posY + acc, 0) / node[this.edgeType].length);
         });
@@ -69,7 +70,8 @@ export default class NodeLayout<A> {
                 return false;
             }
             // check if neibour is blocking optimal position
-            if (neigbour.posY + this.padding < node.optimalPosY - this.padding) {
+            const yPosNeigbour = neigbour.priority === node.priority ? neigbour.optimalPosY : neigbour.posY;
+            if (yPosNeigbour + this.padding < node.optimalPosY - this.padding) {
                 node.posY = node.optimalPosY;
                 return true;
             }
@@ -82,8 +84,6 @@ export default class NodeLayout<A> {
                     const movingDist = Math.abs(node.optimalPosY - node.posY);
                     const movingDistNeigbour = Math.abs(neigbour.optimalPosY - neigbour.posY);
                     const distanceBetween = node.posY - neigbour.posY - this.padding * 2;
-
-                    console.log(movingDist, movingDistNeigbour, distanceBetween);
 
                     const distanceFraction = distanceBetween / (movingDist + movingDistNeigbour);
                     node.posY -= distanceFraction * movingDist;
@@ -107,12 +107,15 @@ export default class NodeLayout<A> {
                 return false;
             }
             // check if neibour is blocking optimal position
-            if (neigbour.posY - this.padding > node.optimalPosY + this.padding) {
+            const yPosNeigbour = neigbour.priority === node.priority ? neigbour.optimalPosY : neigbour.posY;
+            if (yPosNeigbour - this.padding > node.optimalPosY + this.padding) {
                 node.posY = node.optimalPosY;
+                return true;
             }
             // optimal position is blocked by neigbour
             switch (this.getMovingDirection(neigbour)) {
                 case "up":
+                    debugger;
                     const movingDist = Math.abs(node.optimalPosY - node.posY);
                     const movingDistNeigbour = Math.abs(neigbour.optimalPosY - neigbour.posY);
                     const distanceBetween = neigbour.posY - node.posY - this.padding * 2;
