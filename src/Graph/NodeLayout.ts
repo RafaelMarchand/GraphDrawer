@@ -1,3 +1,4 @@
+import { getEnabledCategories } from "trace_events";
 import Node from "./Node";
 
 export default class NodeLayout<A> {
@@ -38,7 +39,6 @@ export default class NodeLayout<A> {
     }
 
     private movingNodes(nodes: Node<A>[], draw: any, graph: any) {
-        debugger;
         nodes.forEach((node) => {
             node.optimalPosY = Math.round(node[this.edgeType].reduce((acc, edge) => edge[this.nodeType].posY + acc, 0) / node[this.edgeType].length);
         });
@@ -46,6 +46,8 @@ export default class NodeLayout<A> {
         let nodeMoved = true;
         while (nodeMoved) {
             nodeMoved = false;
+            // draw.draw(graph);
+            // debugger;
             nodes.forEach((node) => {
                 switch (this.getMovingDirection(node)) {
                     case "up":
@@ -58,8 +60,6 @@ export default class NodeLayout<A> {
                         break;
                 }
             });
-            draw.draw(graph);
-            debugger;
         }
     }
 
@@ -96,7 +96,6 @@ export default class NodeLayout<A> {
         } else {
             node.posY = node.optimalPosY;
         }
-        debugger;
         return true;
     }
 
@@ -115,7 +114,6 @@ export default class NodeLayout<A> {
             // optimal position is blocked by neigbour
             switch (this.getMovingDirection(neigbour)) {
                 case "up":
-                    debugger;
                     const movingDist = Math.abs(node.optimalPosY - node.posY);
                     const movingDistNeigbour = Math.abs(neigbour.optimalPosY - neigbour.posY);
                     const distanceBetween = neigbour.posY - node.posY - this.padding * 2;
@@ -134,7 +132,6 @@ export default class NodeLayout<A> {
         } else {
             node.posY = node.optimalPosY;
         }
-        debugger;
         return true;
     }
 

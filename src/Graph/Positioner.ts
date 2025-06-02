@@ -88,7 +88,6 @@ export default class Positioner<A> {
             [key: number]: Node<A>[];
         };
         const DUMMY_PRIORITY = 1000000;
-        const MIN_NODE_PADDING = 20;
         const priorityGroups: PriorityGroup = {};
 
         nodes.forEach((node) => {
@@ -105,9 +104,10 @@ export default class Positioner<A> {
 
         const prioritiesOrdered = Object.keys(priorityGroups)
             .map((key) => parseInt(key))
-            .sort((a, b) => a - b);
+            .sort((a, b) => b - a);
 
-        const nodeLayout = new NodeLayout<A>(MIN_NODE_PADDING, edgeType);
+        const padding = Math.round(this.config.height / (graph.getWidth() * 2));
+        const nodeLayout = new NodeLayout<A>(padding, edgeType);
 
         prioritiesOrdered.forEach((priority) => {
             const group = priorityGroups[priority];

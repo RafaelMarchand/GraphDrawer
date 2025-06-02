@@ -111,8 +111,8 @@ type Attributes = {
     value: number;
 };
 
-// const graphDrawer = new GraphDrawer<Graphology, Attributes>(graphMethods, container!, config);
-// graphDrawer.update(graph, ["1"]);
+const graphDrawer = new GraphDrawer<Graphology, Attributes>(graphMethods, container!, config);
+graphDrawer.update(graph, ["1"]);
 
 const methods: GraphMethods<Graph<string>, string> = {
     getNodeKeys: (graph) => {
@@ -184,8 +184,8 @@ const config1: Config<string> = {
 };
 
 const containerG1 = document.getElementById("Graph1");
-// const graphDrawerG1 = new GraphDrawer<Graph<string>, string>(methods, containerG1!, config1);
-// graphDrawerG1.update(graph1, ["0_1"]);
+const graphDrawerG1 = new GraphDrawer<Graph<string>, string>(methods, containerG1!, config1);
+graphDrawerG1.update(graph1, ["0_1"]);
 
 const graph2 = new Graph<string>();
 graph2.addNode("0_1", "hi");
@@ -205,8 +205,8 @@ graph2.addEdge("1_1", "2_2");
 graph2.addEdge("1_2", "2_1");
 
 const containerG2 = document.getElementById("Graph2");
-const graphDrawerG2 = new GraphDrawer<Graph<string>, string>(methods, containerG2!, config1);
-graphDrawerG2.update(graph2, ["0_1"]);
+// const graphDrawerG2 = new GraphDrawer<Graph<string>, string>(methods, containerG2!, config1);
+// graphDrawerG2.update(graph2, ["0_1"]);
 
 const graph3 = new Graph<string>();
 graph3.addNode("0_1", "hi");
