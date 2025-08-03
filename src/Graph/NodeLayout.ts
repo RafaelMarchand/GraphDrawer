@@ -1,4 +1,3 @@
-import { getEnabledCategories } from "trace_events";
 import Node from "./Node";
 
 export default class NodeLayout<A> {

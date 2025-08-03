@@ -1,9 +1,9 @@
+import { usolve } from "mathjs";
 import { ConfigIntern } from "../main";
 import Drawer from "./Drawer";
+import Edge from "./Edge";
 import Graph from "./Graph";
 import Node from "./Node";
-import Edge from "./Edge";
-import { usolve } from "mathjs";
 import NodeLayout from "./NodeLayout";
 
 export default class Positioner<A> {
@@ -19,7 +19,7 @@ export default class Positioner<A> {
         const orderedGraph = this.ordering(inputGraph);
         this.setPositionX(orderedGraph);
         this.setPositionY_1(orderedGraph);
-
+        this.centerGraph(orderedGraph);
         inputGraph.nodes.forEach((node, key) => {
             node.position = orderedGraph.nodes.get(key)!.position;
         });
@@ -113,6 +113,34 @@ export default class Positioner<A> {
             const group = priorityGroups[priority];
             nodeLayout.feedNodes(group, this.drawer, graph);
         });
+    }
+
+    private centerGraph(graph: Graph<A>) {
+        let maxY = 0;
+        let minY = Infinity;
+        graph.nodes.forEach(node => {
+            if (node.posY > maxY) {
+                maxY = node.posY;
+            }
+            if (node.posY < minY) {
+                minY = node.posY;
+            }
+        })
+
+        const paddingDifference = (this.config.height - maxY) - minY; 
+        const moveDistance = paddingDifference / 2;
+
+        if (paddingDifference < 0) {
+            graph.nodes.forEach(node => {
+                node.posY -= moveDistance;
+            })
+        }
+        if (paddingDifference > 0) {
+            graph.nodes.forEach(node => {
+                node.posY += moveDistance;
+            })
+
+        }
     }
 
     private setPositionX(graph: Graph<A>) {

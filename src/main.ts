@@ -1,10 +1,10 @@
+import Drawer from "./Graph/Drawer.js"
 import Edge from "./Graph/Edge.js"
 import Graph from "./Graph/Graph.js"
-import Drawer from "./Graph/Drawer.js"
 import Node from "./Graph/Node.js"
+import Positioner, { getPositionsX } from "./Graph/Positioner.js"
 import Position from "./Vec.js"
 import { convert, getConfig, getValue } from "./utils.js"
-import Positioner, { getPositionsX } from "./Graph/Positioner.js"
 
 export type GraphMethods<G, A> = {
   getNodeKeys: (graph: G) => string[]

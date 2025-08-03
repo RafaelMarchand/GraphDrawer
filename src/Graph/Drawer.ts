@@ -1,8 +1,8 @@
+import Position from "../Vec.js"
 import { ConfigIntern } from "../main"
+import { getValue } from "../utils"
 import Graph from "./Graph"
 import Node, { DummyValues } from "./Node"
-import Position from "../Vec.js"
-import { getValue } from "../utils"
 
 export default class Drawer<A> {
   graph: Graph<A>

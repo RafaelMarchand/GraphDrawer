@@ -1,6 +1,6 @@
 import Graphology from "graphology";
-import GraphDrawer, { Config, GraphMethods } from "../../src/main";
 import Graph from "../../src/Graph/Graph";
+import GraphDrawer, { Config, GraphMethods } from "../../src/main";
 
 const graph = new Graphology({ type: "directed" });
 
@@ -114,6 +114,12 @@ type Attributes = {
 const graphDrawer = new GraphDrawer<Graphology, Attributes>(graphMethods, container!, config);
 graphDrawer.update(graph, ["1"]);
 
+const graph1TestValues = [];
+graphDrawer.graph.nodes.forEach((value, key) => {
+    graph1TestValues.push({key, position: value.position})
+});
+console.log(JSON.stringify(graph1TestValues));
+
 const methods: GraphMethods<Graph<string>, string> = {
     getNodeKeys: (graph) => {
         const keys: string[] = [];
@@ -186,7 +192,11 @@ const config1: Config<string> = {
 const containerG1 = document.getElementById("Graph1");
 const graphDrawerG1 = new GraphDrawer<Graph<string>, string>(methods, containerG1!, config1);
 graphDrawerG1.update(graph1, ["0_1"]);
-
+const graph2TestValues = [];
+graphDrawerG1.graph.nodes.forEach((value, key) => {
+    graph2TestValues.push({key, position: value.position})
+});
+console.log(JSON.stringify(graph2TestValues));
 const graph2 = new Graph<string>();
 graph2.addNode("0_1", "hi");
 
@@ -205,8 +215,14 @@ graph2.addEdge("1_1", "2_2");
 graph2.addEdge("1_2", "2_1");
 
 const containerG2 = document.getElementById("Graph2");
-// const graphDrawerG2 = new GraphDrawer<Graph<string>, string>(methods, containerG2!, config1);
-// graphDrawerG2.update(graph2, ["0_1"]);
+const graphDrawerG2 = new GraphDrawer<Graph<string>, string>(methods, containerG2!, config1);
+graphDrawerG2.update(graph2, ["0_1"]);
+
+const graph3TestValues = [];
+graphDrawerG1.graph.nodes.forEach((value, key) => {
+    graph3TestValues.push({key, position: value.position})
+});
+console.log(JSON.stringify(graph3TestValues));
 
 const graph3 = new Graph<string>();
 graph3.addNode("0_1", "hi");
@@ -234,3 +250,8 @@ graph3.addEdge("1_2", "2_3");
 const containerG3 = document.getElementById("Graph3");
 const graphDrawerG3 = new GraphDrawer<Graph<string>, string>(methods, containerG3!, config1);
 graphDrawerG3.update(graph3, ["0_1", "0_2", "0_3", "0_4"]);
+const graph4TestValues = [];
+graphDrawerG1.graph.nodes.forEach((value, key) => {
+    graph4TestValues.push({key, position: value.position})
+});
+console.log(JSON.stringify(graph4TestValues));
